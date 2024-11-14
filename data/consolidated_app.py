@@ -59,8 +59,8 @@ file_url = 'https://raw.githubusercontent.com/T-Rex-chess/OMSBACapstone/main/dat
 sales_data = pd.read_csv(file_url, encoding='ISO-8859-1') #Handles wider range of special char.
 sales_data_df = pd.DataFrame(sales_data) # create a dataframe of the sales data
 #print(sales_data.head())
-print("\n Sales Dataframe Head:")
-print(sales_data_df.head())
+#print("\n Sales Dataframe Head:")
+#print(sales_data_df.head())
 
 
 
@@ -205,24 +205,63 @@ class DataLoader(BaseManager):
     
     
     
-    def ordered_split_data(self, target_y_column, target_x_columns = None, test_value = -5):
+    def ordered_split_data(self, target_y_column, target_x_columns = None, test_value = -5, cull = False, n = 30):
+        
+
+        
         od = self.data
+        
+        
+        
+
         
         if target_x_columns == None:
             od = od.sort_values(target_y_column)
+            
+            
+            if cull == True:
+                start = random.randint(0, len(od.index - n-1))
+        
+            
+                df = od.iloc[start:start+n+1]
+            
+
+                od = df
+            
+            
+            else: 
+                n = n
+            
             X = od.data.drop(columns=[target_y_column])
             
             
         else:
-            od = od.sort_values(target_x_columns[0])
+
+            c = target_x_columns[0]
+            od = od.sort_values(c)
             cols_to_drop = []
             for i in list(self.data):
-                print(i)
+
                 if i in target_x_columns:
                     inx = 1
                 else:
                     cols_to_drop.append(i)
-                   
+            
+            
+            if cull == True:
+                start = random.randint(0, len(od.index - n-1))
+        
+            
+                df = od.iloc[start:start+n+1]
+            
+
+                od = df
+            
+            
+            else: 
+                n = n
+            
+            
             X = od.drop(columns=cols_to_drop)
         y = od[target_y_column]
         X_train = X.iloc[0:test_value]
@@ -298,6 +337,28 @@ class DataLoader(BaseManager):
         # use the sample method to randomly select
         sample_indices = self.data.sample(n=n).index
         self.data = self.data.loc[sample_indices]
+        return self.data
+    
+    def orderd_and_drop(self, n = 30):
+        '''
+        Randomly selects n rows from a dataframe and drops the rest
+
+        Args:
+            df (pd.DataFrame): the input dataframe
+            n (int): the number of rows to randomly select
+
+        Returns:
+            pd.DataFrame: a new dataframe filtered to n rows with all other rows dropped
+        '''
+        # use the sample method to randomly select
+        start = random.randint(0, len(self.data.index - n-1))
+        #print(start)
+        
+        df = self.data.iloc[start:start+n+1]
+        
+
+        self.data = df
+        
         return self.data
 
     def row_count(self):
@@ -567,12 +628,14 @@ y_train = y_train.to_numpy()
 y_test = y_test.to_numpy()
 """
 '''
+'''
 data_loader = DataLoader(sales_data)
 data_loader.select_and_drop()
 print('Here is the row count of the dataframe: ',data_loader.row_count())
 data_loader.preprocess_data()
 data_loader.handle_missing_values()
 print('Here is the row count of the processed dataframe: ',data_loader.row_count())
+'''
 
 # END of BACKEND PROGRAM ----------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------------
@@ -581,7 +644,7 @@ print('Here is the row count of the processed dataframe: ',data_loader.row_count
 
 # Eventually reshuffle all the code around so this makes sense with the backend program -------------------------
 # START GAMEPLAY LOOP -------------------------------------------------------------------------------------------
-print('Welcome to Xtrapolate: Gamified Data Science!')
+'''print('Welcome to Xtrapolate: Gamified Data Science!')
 print("In this game, you will attempt to guess values based on some graphed data.")
 print("Are you ready to play? \n")
 
@@ -614,8 +677,9 @@ summ_stats_df.handle_missing_values()
 summary_stats = summ_stats_df.get_summary_stats()
 print(summary_stats)
 
-
+'''
 # Begin Charting / Load Flask & Bokeh ----------------------------------------------------------------------
+'''
 print("\n")
 print('Here is a chart of the data:')
 # Display the chart here ----------------
@@ -626,21 +690,23 @@ print('Here is a chart of the data:')
 
 # Run the Application Start Bokeh Charts -------------------------------------------------------------------
 Plot_Title = 'Dummy Data'
-
-def bridge(data_set):
+'''
+def bridge(data_set, cull = False):
     
     
     # this is essentialy hard coded for now but I think making different paths for each dataset based on the collums we actually use makes sense, can be altered later.
     if data_set == "Sales":
         
         data_loader = DataLoader(sales_data)
-        data_loader.select_and_drop()
+        
         # add filter productline !!!
         # inser filter for productline here
         data_loader.preprocess_data()
         data_loader.handle_missing_values()
         
-        X_train, X_test, y_train, y_test = data_loader.ordered_split_data(target_y_column='SALES', target_x_columns=['ORDERDATE'])
+        #data_loader.orderd_and_drop()
+        
+        X_train, X_test, y_train, y_test = data_loader.ordered_split_data(target_y_column='SALES', target_x_columns=['ORDERDATE'], test_value=-5, cull = cull)
         
         X_train = X_train.to_numpy()
         X_train = np.transpose(X_train)
@@ -679,7 +745,7 @@ def guess():
     if request.method == 'POST':
         # Creating Plot Figure
         
-        X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales")
+        X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales", True)
         
         test1 = [1, 2, 3]
         test2 = [4, 5, 6]
@@ -714,11 +780,11 @@ def guess():
                 <h1> Submit a prediction for Y at the following X values </h1>
                 
                 <form action="/display" method = "POST">
-        <p> {X_test[0]} <input type = "number" step = "any" name = "g1" required /></p>
-        <p> {X_test[1]} <input type = "number" step = "any" name = "g2"  required /></p>
-        <p> {X_test[2]} <input type = "number" step = "any" name = "g3" required /></p>
-        <p> {X_test[3]} <input type = "number" step = "any" name = "g4" required /></p>
-        <p> {X_test[4]} <input type = "number" step = "any" name = "g5" required /></p>
+        <p> {str(X_test[0]):.10} <input type = "number" step = "any" name = "g1" required /></p>
+        <p> {str(X_test[1]):.10} <input type = "number" step = "any" name = "g2"  required /></p>
+        <p> {str(X_test[2]):.10} <input type = "number" step = "any" name = "g3" required /></p>
+        <p> {str(X_test[3]):.10} <input type = "number" step = "any" name = "g4" required /></p>
+        <p> {str(X_test[4]):.10} <input type = "number" step = "any" name = "g5" required /></p>
         <p><input type = "submit" value = "Submit" /></p>
         </form>
                 
@@ -762,15 +828,13 @@ def display():
         weights = np.ones(len(y_test))
         ybar = (sum(y_train)+sum(y_test))/(len(y_train)+len(y_test))
         
-        
-        print(user_guesses)
-        
+
         s = ScoreManager()
         
         user_score = s.scoring(user_guesses, y_test, weights, ybar)
         
         
-        print(user_score)
+
         regr = ModelManager()
         
         #ntercept, coefficients, ML_pred = regr.auto_reg_lin(X_train, y_train, X_test)
