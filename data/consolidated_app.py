@@ -176,10 +176,8 @@ class DataLoader(BaseManager):
         categorical_cols = ['STATUS', 'PRODUCTLINE', 'DEALSIZE', 'COUNTRY']
         self.data = pd.get_dummies(self.data, columns=categorical_cols, drop_first=True)
         # Drop non-numeric columns after encoding
-        
         #convert dates to datetime
         self.data['ORDERDATE'] = pd.to_datetime(self.data['ORDERDATE'])
-        
         #self.data = self.data.select_dtypes(include=[np.number, pd._libs.tslibs.timestamps.Timestamp])
         print("Non-numeric columns dropped and categorical variables encoded successfully.")
     
@@ -187,8 +185,6 @@ class DataLoader(BaseManager):
     def split_data(self, target_y_column, target_x_columns = None, test_size = 0.2):
         if target_x_columns == None:
             X = self.data.drop(columns=[target_y_column])
-            
-            
         else:
             cols_to_drop = []
             for i in list(self.data):
@@ -206,72 +202,37 @@ class DataLoader(BaseManager):
     
     
     def ordered_split_data(self, target_y_column, target_x_columns = None, test_value = -5, cull = False, n = 30):
-        
-
-        
-        od = self.data
-        
-        
-        
-
-        
+        od = self.data        
         if target_x_columns == None:
             od = od.sort_values(target_y_column)
-            
-            
             if cull == True:
                 start = random.randint(0, len(od.index - n-1))
-        
-            
                 df = od.iloc[start:start+n+1]
-            
-
                 od = df
-            
-            
             else: 
                 n = n
-            
             X = od.data.drop(columns=[target_y_column])
-            
-            
         else:
-
             c = target_x_columns[0]
             od = od.sort_values(c)
             cols_to_drop = []
             for i in list(self.data):
-
                 if i in target_x_columns:
                     inx = 1
                 else:
                     cols_to_drop.append(i)
-            
-            
             if cull == True:
                 start = random.randint(0, len(od.index - n-1))
-        
-            
                 df = od.iloc[start:start+n+1]
-            
-
                 od = df
-            
-            
             else: 
                 n = n
-            
-            
             X = od.drop(columns=cols_to_drop)
         y = od[target_y_column]
         X_train = X.iloc[0:test_value]
         y_train = y.iloc[0:test_value]
-        
         X_test = X.iloc[test_value:]
         y_test = y.iloc[test_value:]
-        
-        
-        
         #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
         return X_train, X_test, y_train, y_test
     
@@ -323,7 +284,7 @@ class DataLoader(BaseManager):
     
 
     # Need to fix this and incorporate into the actual program...
-    def select_and_drop(self, n = 30):
+    def select_and_drop(self, n = 35):
         '''
         Randomly selects n rows from a dataframe and drops the rest
 
@@ -339,7 +300,8 @@ class DataLoader(BaseManager):
         self.data = self.data.loc[sample_indices]
         return self.data
     
-    def orderd_and_drop(self, n = 30):
+
+    def ordered_and_drop(self, n = 35):
         '''
         Randomly selects n rows from a dataframe and drops the rest
 
@@ -353,13 +315,10 @@ class DataLoader(BaseManager):
         # use the sample method to randomly select
         start = random.randint(0, len(self.data.index - n-1))
         #print(start)
-        
         df = self.data.iloc[start:start+n+1]
-        
-
         self.data = df
-        
         return self.data
+
 
     def row_count(self):
         """
@@ -371,20 +330,19 @@ class DataLoader(BaseManager):
         """
         return len(self.data.index)
 
-    '''
-    AT: - We should create functions to filter the dataset (maybe based on country or timeframe?)
-    AT: - And we should prompt the player to select which filter they want to apply
-    AT: starting the functions as below...
 
-    def get_unique_values(self):
-        unique_values = df['column_name'].unique()
-        return unique_values
+    def aggregate_by_month(self):
+        self.data['ORDERDATE'] = pd.to_datetime(self.data['ORDERDATE'])
+        start_date = self.data['ORDERDATE'].min()
+        self.data['MonthCounter'] = ((self.data['ORDERDATE'].dt.year - start_date.year) * 12 +
+                                     self.data['ORDERDATE'].dt.month - start_date.month + 1)
+        aggregated_data = self.data.groupby('MonthCounter')['SALES'].sum().reset_index()
+        return aggregated_data
     
-    def filter_data(self):
-        filtered_df = df[df['column_name'].isin(unique_values)]
-        return filtered_df
-    '''
-
+    
+    def aggregate_by_date(self):
+        aggregated_data = self.data.groupby('ORDERDATE')['SALES'].sum().reset_index()
+        return aggregated_data
 
 
 
@@ -692,19 +650,19 @@ print('Here is a chart of the data:')
 Plot_Title = 'Dummy Data'
 '''
 def bridge(data_set, cull = False):
-    
-    
     # this is essentialy hard coded for now but I think making different paths for each dataset based on the collums we actually use makes sense, can be altered later.
     if data_set == "Sales":
         
         data_loader = DataLoader(sales_data)
         
         # add filter productline !!!
-        # inser filter for productline here
+        # insert filter for productline here
         data_loader.preprocess_data()
         data_loader.handle_missing_values()
-        
-        #data_loader.orderd_and_drop()
+        data_loader.aggregate_by_date()
+        data_loader.select_and_drop()
+
+        #data_loader.ordered_and_drop()
         
         X_train, X_test, y_train, y_test = data_loader.ordered_split_data(target_y_column='SALES', target_x_columns=['ORDERDATE'], test_value=-5, cull = cull)
         
@@ -730,6 +688,7 @@ def start_page():
     <h1>Welcome to Xtrapolate!</h1>
     <h2>a data science game</h2>
     <h3>Created by: Thomas Taylor, Jomaica Lei, Andy Turner</h3>
+    <p> In this game, you will compete against a machine learning model to predict values. </p>
     <form action="/guess" method = "POST">
     <p><input type = "submit" value = "Start game" /></p>
     </form>
@@ -772,12 +731,13 @@ def guess():
     			<title>Bokeh Charts</title>
     		</head>
     		<body>
-    			<h1> Graph of {Plot_Title} </h1>
+    			<h1> Graph of Sum of Vehicle Sales ($) by Calendar Date </h1>
+                <h2> The below scatterplot displays the aggregate sum of the $ amount of vehicles sold on a given calendar date (Sales = Price * Quantity Sold) </h2>
     			{ div }
     			{ script }
-                
-                
-                <h1> Submit a prediction for Y at the following X values </h1>
+
+                <h3> Submit a prediction for the $ amount of vehicle sales for each date below. </h3>
+                <p> After you submit your guesses, a machine learning model will also make some predictions. Can you beat the machine by predicting values more accurately? Good luck! </p>
                 
                 <form action="/display" method = "POST">
         <p> {str(X_test[0]):.10} <input type = "number" step = "any" name = "g1" required /></p>
@@ -828,20 +788,15 @@ def display():
         weights = np.ones(len(y_test))
         ybar = (sum(y_train)+sum(y_test))/(len(y_train)+len(y_test))
         
-
+        #create instance of ScoreManager()
         s = ScoreManager()
-        
         user_score = s.scoring(user_guesses, y_test, weights, ybar)
         
-        
-
+        #create instance of ModelManager()
         regr = ModelManager()
         
         #ntercept, coefficients, ML_pred = regr.auto_reg_lin(X_train, y_train, X_test)
-        
-        
         regr.fit(train_days.reshape(-1, 1), y_train)
-        
         gamecoefficients = regr.get_coefficients()
         intercepts = regr.get_intercept()
         ML_pred = regr.predict(test_days.reshape(-1, 1))
@@ -873,7 +828,7 @@ def display():
             size=10,
             color="orange",
             alpha=0.9,
-            legend_label = "User Predicted value"
+            legend_label = "Player Predicted value"
         )
         
         p.circle(
@@ -900,10 +855,10 @@ def display():
                 <h1> After </h1>
                 { div }
                 { script }
-                <h2> User Score was: {user_score}, ML Score Was {ML_Score } <h2>
-                <h2> User Wins </h2>
+                <h2> Player Score was: {user_score}, ML Score Was {ML_Score } <h2>
+                <h2> Player Wins </h2>
                 <form action="/guess" method = "POST">
-        <p><input type = "submit" value = "Continue Playing" /></p>
+        <p><input type = "submit" value = "Play again? Think you can beat the machine?" /></p>
         </form>
                 <form action="/" method = "POST">
         <p><input type = "submit" value = "Return to Homepage" /></p>
@@ -934,12 +889,9 @@ def display():
         </html>
         '''
         
-        
-
-    
 X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales") 
 #app.run(debug=False)
 
 if __name__ == '__main__':
 	# Run the application on the local development server
-	app.run(debug=True)
+	app.run(debug=False)
