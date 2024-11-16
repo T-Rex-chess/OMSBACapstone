@@ -880,7 +880,7 @@ def display():
                 <h1> Here are the results of the predictions: </h1>
                 { div }
                 { script }
-                <h2> Your MAPE was: {user_mape}, ML MAPE Was {regr_mape}. <h2>
+                <h2> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h2>
                 <h2> You Won this Round! Good job predicting! </h2>
                 <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
                 <form action="/guess" method = "POST">
@@ -903,7 +903,7 @@ def display():
                 <h1> Here are the results of the predictions: </h1>
                 { div }
                 { script }
-            <h2> User MAPE was: {user_mape}, ML MAPE Was {regr_mape} <h2>
+            <h2> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h2>
                 <h2> ML Wins this Round! Better luck next time. </h2>    
                 <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
         <form action="/guess" method = "POST">
