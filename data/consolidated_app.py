@@ -602,7 +602,8 @@ print('Here is the row count of the processed dataframe: ',data_loader.row_count
 
 # Eventually reshuffle all the code around so this makes sense with the backend program -------------------------
 # START GAMEPLAY LOOP -------------------------------------------------------------------------------------------
-'''print('Welcome to Xtrapolate: Gamified Data Science!')
+'''
+print('Welcome to Xtrapolate: Gamified Data Science!')
 print("In this game, you will attempt to guess values based on some graphed data.")
 print("Are you ready to play? \n")
 
@@ -623,19 +624,22 @@ print(f"\nYou selected: {selected_topic}")
 
 # player filters the data
 # insert code here once filter functions working on dataset
-
+'''
 
 # Display the summary statistics of the data
 print("\n")
 print("Here are the summary statistics of the Sales Data: \n")
 summ_stats_df = DataLoader(sales_data_df)
 summ_stats_df.select_and_drop()
+print('Here is the row count after dropping some of the data: ', summ_stats_df.row_count())
+summ_stats_df.aggregate_by_date()
+print('Here is the row count after aggregating the data: ', summ_stats_df.row_count())
 summ_stats_df.preprocess_data()
 summ_stats_df.handle_missing_values()
 summary_stats = summ_stats_df.get_summary_stats()
 print(summary_stats)
 
-'''
+
 # Begin Charting / Load Flask & Bokeh ----------------------------------------------------------------------
 '''
 print("\n")
@@ -657,10 +661,12 @@ def bridge(data_set, cull = False):
         
         # add filter productline !!!
         # insert filter for productline here
+        data_loader.select_and_drop()
+        data_loader.aggregate_by_date()
         data_loader.preprocess_data()
         data_loader.handle_missing_values()
-        data_loader.aggregate_by_date()
-        data_loader.select_and_drop()
+        
+        
 
         #data_loader.ordered_and_drop()
         
@@ -688,7 +694,8 @@ def start_page():
     <h1>Welcome to Xtrapolate!</h1>
     <h2>a data science game</h2>
     <h3>Created by: Thomas Taylor, Jomaica Lei, Andy Turner</h3>
-    <p> In this game, you will compete against a machine learning model to predict values. </p>
+    <p> In this game, you will compete against a machine learning model to predict values of a sales dataset. </p>
+    <p> The sales dataset is sourced from Kaggle, and is available here: https://www.kaggle.com/datasets/kyanyoga/sample-sales-data </p>
     <form action="/guess" method = "POST">
     <p><input type = "submit" value = "Start game" /></p>
     </form>
@@ -696,6 +703,7 @@ def start_page():
     </html>
     '''
    
+
 # NEED TO FEED AN ARRAY INTO THE GUESS FUNCTION SO IT WORKS
 @app.route('/guess/', methods = ['POST', 'GET'])
 def guess():
@@ -704,12 +712,14 @@ def guess():
     if request.method == 'POST':
         # Creating Plot Figure
         
-        X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales", True)
+        X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales")
         
         test1 = [1, 2, 3]
         test2 = [4, 5, 6]
         
         p = figure(height=350, x_axis_type='datetime', sizing_mode="stretch_width")
+        p.xaxis.axis_label = "Calendar Date"
+        p.yaxis.axis_label = "Sum of Vehicle Sales"
         p.add_tools(HoverTool())
         # Defining Plot to be a Scatter Plot
         p.circle( 	[i for i in X_train],
@@ -718,6 +728,7 @@ def guess():
             color="blue",
             alpha=0.5
         )
+        p.legend.location = 'top_left'
         
         # Get Chart Components
         script, div = components(p)
@@ -802,6 +813,8 @@ def display():
         ML_pred = regr.predict(test_days.reshape(-1, 1))
         ML_Score = s.scoring(ML_pred, y_test, weights, ybar)
         p = figure(height=350, sizing_mode="stretch_width")
+        p.xaxis.axis_label = "Calendar Date"
+        p.yaxis.axis_label = "Sum of Vehicle Sales"
         p.add_tools(HoverTool())
 
         # Defining Plot to be a Scatter Plot
@@ -825,7 +838,7 @@ def display():
         p.circle(
             [i for i in X_test],
             [j for j in user_guesses],
-            size=10,
+            size=15,
             color="orange",
             alpha=0.9,
             legend_label = "Player Predicted value"
@@ -834,7 +847,7 @@ def display():
         p.circle(
             [i for i in X_test],
             [j for j in ML_pred],
-            size=5,
+            size=15,
             color="red",
             alpha=0.8,
             legend_label = "ML Predicted value"
@@ -852,7 +865,7 @@ def display():
                 <title>Bokeh Charts 2</title>
             </head>
             <body>
-                <h1> After </h1>
+                <h1> Here are the results of the predictions: </h1>
                 { div }
                 { script }
                 <h2> Player Score was: {user_score}, ML Score Was {ML_Score } <h2>
@@ -874,7 +887,7 @@ def display():
                 <title>Bokeh Charts 2</title>
             </head>
             <body>
-                <h1> After </h1>
+                <h1> Here are the results of the predictions: </h1>
                 { div }
                 { script }
             <h2> User Score was: {user_score}, ML Score Was {ML_Score } <h2>
