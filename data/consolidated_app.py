@@ -880,11 +880,11 @@ def display():
                 <h1> Here are the results of the predictions: </h1>
                 { div }
                 { script }
-                <h2> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h2>
                 <h2> You Won this Round! Good job predicting! </h2>
+                <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>
                 <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
                 <form action="/guess" method = "POST">
-        <p><input type = "submit" value = "Play again? Think you can beat the machine?" /></p>
+        <p><input type = "submit" value = "Nice work, think you can do it again?" /></p>
         </form>
                 <form action="/" method = "POST">
         <p><input type = "submit" value = "Return to Homepage" /></p>
@@ -903,11 +903,11 @@ def display():
                 <h1> Here are the results of the predictions: </h1>
                 { div }
                 { script }
-            <h2> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h2>
-                <h2> ML Wins this Round! Better luck next time. </h2>    
-                <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
+            <h2> ML Wins this Round! Better luck next time. </h2>
+            <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>                    
+            <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
         <form action="/guess" method = "POST">
-<p><input type = "submit" value = "Continue Playing" /></p>
+<p><input type = "submit" value = "Play again? Think you can beat the machine?" /></p>
     </form>
         <form action="/" method = "POST">
 <p><input type = "submit" value = "Return to Homepage" /></p>
