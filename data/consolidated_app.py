@@ -373,7 +373,7 @@ class ModelManager:
         return self.model.predict(X)
 
 
-    def evaluate(self, X, y):
+    def evaluate(self, y_true, y_pred):
         """
         Evaluate the model's performance.
         Args:
@@ -383,10 +383,10 @@ class ModelManager:
             tuple: (Mean squared error, R-squared score)
         """
         # LM in this case is y_pred, 'linear model'
-        LM_pred = self.predict(X)
-        mse = mean_squared_error(y, LM_pred)
-        r2 = r2_score(y, LM_pred)
-        mape = mean_absolute_percentage_error(y, LM_pred)
+        LM_pred = self.predict(y_true)
+        mse = mean_squared_error(y_true, y_pred)
+        r2 = r2_score(y_true, y_pred)
+        mape = mean_absolute_percentage_error(y_true, y_pred)
         return mse, r2, mape
 
 
@@ -446,6 +446,9 @@ class ModelManager:
         print(y_pred)
         '''
 
+    def mape(self, y_true, y_pred): 
+        y_true, y_pred = np.array(y_true), np.array(y_pred)
+        return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
 # How to Use the ModelManager Class ----------------------
 # Create an instance of the class
@@ -812,6 +815,14 @@ def display():
         intercepts = regr.get_intercept()
         ML_pred = regr.predict(test_days.reshape(-1, 1))
         ML_Score = s.scoring(ML_pred, y_test, weights, ybar)
+
+        #get user MAPE:
+        user_mape = round(regr.mape(y_test, user_guesses),2)
+
+        #get ML MAPE:
+        regr_mape = round(regr.mape(y_test, ML_pred),2)
+
+        #create plot
         p = figure(height=350, sizing_mode="stretch_width")
         p.xaxis.axis_label = "Calendar Date"
         p.yaxis.axis_label = "Sum of Vehicle Sales"
@@ -823,33 +834,34 @@ def display():
             [j for j in y_train],
             size=20,
             color="blue",
-            alpha=0.8,
-            legend_label = "Actual value"
+            alpha=0.5,
+            legend_label = "Historical Actuals"
         )
         
         p.circle(
             [i for i in X_test],
             [j for j in y_test],
             size=20,
-            color="blue",
-            alpha=0.8
+            color="green",
+            alpha=0.5,
+            legend_label = 'Actual Values (from Prediction Dates)'
         )
         
         p.circle(
             [i for i in X_test],
             [j for j in user_guesses],
-            size=15,
+            size=20,
             color="orange",
-            alpha=0.9,
+            alpha=0.5,
             legend_label = "Player Predicted value"
         )
         
         p.circle(
             [i for i in X_test],
             [j for j in ML_pred],
-            size=15,
+            size=20,
             color="red",
-            alpha=0.8,
+            alpha=0.5,
             legend_label = "ML Predicted value"
         )
         
@@ -857,7 +869,7 @@ def display():
 
         # Get Chart Components
         script, div = components(p)
-        if user_score >= ML_Score: 
+        if user_mape <= regr_mape: 
             return  f'''
         <html lang="en">
             <head>
@@ -868,8 +880,9 @@ def display():
                 <h1> Here are the results of the predictions: </h1>
                 { div }
                 { script }
-                <h2> Player Score was: {user_score}, ML Score Was {ML_Score } <h2>
-                <h2> Player Wins </h2>
+                <h2> Your MAPE was: {user_mape}, ML MAPE Was {regr_mape}. <h2>
+                <h2> You Won this Round! Good job predicting! </h2>
+                <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
                 <form action="/guess" method = "POST">
         <p><input type = "submit" value = "Play again? Think you can beat the machine?" /></p>
         </form>
@@ -890,8 +903,9 @@ def display():
                 <h1> Here are the results of the predictions: </h1>
                 { div }
                 { script }
-            <h2> User Score was: {user_score}, ML Score Was {ML_Score } <h2>
-                <h2> ML Wins </h2>    
+            <h2> User MAPE was: {user_mape}, ML MAPE Was {regr_mape} <h2>
+                <h2> ML Wins this Round! Better luck next time. </h2>    
+                <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
         <form action="/guess" method = "POST">
 <p><input type = "submit" value = "Continue Playing" /></p>
     </form>
