@@ -843,7 +843,7 @@ def display():
         regr_mape = round(regr.mape(y_test, ML_pred),2)
 
         #create plot
-        p = figure(height=350, sizing_mode="stretch_width")
+        p = figure(height=350, x_axis_type='datetime', sizing_mode="stretch_width")
         p.xaxis.axis_label = "Calendar Date"
         p.yaxis.axis_label = "Sum of Vehicle Sales"
         p.add_tools(HoverTool())
