@@ -19,7 +19,8 @@ import random
 from flask import Flask
 from flask import Flask, render_template, request
 from bokeh.embed import components
-from bokeh.plotting import figure
+from bokeh.plotting import figure, show
+from bokeh.models import BoxAnnotation
 # from xtrapolate_functions import scoring, auto_reg_lin
 from bokeh.models import HoverTool
 
@@ -739,6 +740,10 @@ def guess():
         
         test1 = [1, 2, 3]
         test2 = [4, 5, 6]
+
+        start_shade = X_test[0]
+        end_shade = X_test[4]
+        box = BoxAnnotation(left=start_shade, right=end_shade, fill_alpha=0.4, fill_color='lightblue')
         
         p = figure(height=350, x_axis_type='datetime', sizing_mode="stretch_width")
         p.xaxis.axis_label = "Calendar Date"
@@ -752,6 +757,7 @@ def guess():
             alpha=0.5
         )
         p.legend.location = 'top_left'
+        p.add_layout(box)
         
         # Get Chart Components
         script, div = components(p)
@@ -770,7 +776,7 @@ def guess():
     			{ div }
     			{ script }
 
-                <h3> Submit a prediction for the $ amount of vehicle sales for each date below. </h3>
+                <h3> Submit a prediction for the $ amount of vehicle sales for each date below. This will show up in the light blue shaded region. </h3>
                 <p> After you submit your guesses, a machine learning model will also make some predictions. Can you beat the machine by predicting values more accurately? Good luck! </p>
                 
                 <form action="/display" method = "POST">
