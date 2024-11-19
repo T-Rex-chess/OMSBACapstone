@@ -689,40 +689,100 @@ def bridge(data_set, cull = False):
         return  X_train, X_test, y_train, y_test,  Plot_Title
 
 
+dark_theme = {
+    "background": "#141A2D",
+    "text_color": "#FFFFFF",
+    "button_bg": "#4E7CFF",
+    "button_hover": "#7033FF",
+    "accent_color": "#F65164",
+    "chart_background": "#252C40",
+    "tooltip_bg": "#252C40",
+    "tooltip_text_color": "#FFFFFF",
+    "neutral": "#DC7653"
+}
+
+
 @app.route('/')
 def start_page():
-    #return render_template('start_page.html')
+    theme = {
+        "background": "#141A2D",
+        "text_color": "#FFFFFF",
+        "button_bg": "#4E7CFF",
+        "button_hover": "#7033FF",
+        "accent_color": "#F65164",
+        "chart_background": "#252C40",
+        "tooltip_bg": "#252C40",
+        "tooltip_text_color": "#FFFFFF",
+        "neutral": "#DC7653"
+    }
+
     return f'''
     <html lang="en">
-    <body>      
-    <h1>Welcome to Xtrapolate!</h1>
-    <h2>a data science game</h2>
-    <h3>Created by: Thomas Taylor, Jomaica Lei, Andy Turner</h3>
-    <hr> </hr>
-    <p> In this game, you will compete against a machine learning model to predict values of a sales dataset. </p>
-    <p> The sales dataset is sourced from Kaggle, and is available here: https://www.kaggle.com/datasets/kyanyoga/sample-sales-data </p>
-    <hr> </hr>
-    <h4> Here is some information about the game and machine learning: </h4>
-    <p> The game will begin by displaying a scatterplot of some sales data. The scatterplot represents the
-        total sales (price x quantity) of vehicles sold globally across various regions.
-        You will be prompted to enter guesses on the total sales of vehicles for 5 specific dates. 
-        A machine learning model will also be running to predict the sales as well. 
-        Your job is to do a better job of predicting than the machine.
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome to Xtrapolate</title>
+        <style>
+            body {{
+                background-color: {theme['background']};
+                color: {theme['text_color']};
+                font-family: 'Segoe UI', sans-serif;
+                margin: 0;
+                padding: 20px;
+                text-align: center;
+            }}
+            h1, h2, h3, h4, p {{
+                color: {theme['text_color']};
+            }}
+            hr {{
+                border: 1px solid {theme['neutral']};
+            }}
+            .btn-custom {{
+                background-color: {theme['button_bg']};
+                color: {theme['text_color']};
+                border: none;
+                padding: 10px 15px;
+                border-radius: 5px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }}
+            .btn-custom:hover {{
+                background-color: {theme['button_hover']};
+            }}
+        </style>
+    </head>
+    <body>
+        <h1>Welcome to Xtrapolate!</h1>
+        <h2>a data science game</h2>
+        <h3>Created by: Thomas Taylor, Jomaica Lei, Andy Turner</h3>
+        <hr>
+        <p> In this game, you will compete against a machine learning model to predict values of a sales dataset. </p>
+        <p> The sales dataset is sourced from Kaggle, and is available here: 
+            <a href="https://www.kaggle.com/datasets/kyanyoga/sample-sales-data" style="color: {theme['accent_color']}; text-decoration: none;">Sales Dataset</a>
         </p>
-    <hr> </hr>
-    <h4> Game Scoring </h4>
-    <p> The game is scored using Mean Absolute Percentage Error (MAPE). 
-        MAPE is a statistical measure that calculates the average percentage difference 
-        between predicted values and actual values. This essentially shows how far off a model's predictions are on average.
-        MAPE is expressed as a percentage, making it easy to interpret the accuracy of a forecast or prediction.
-        Lastly, a lower MAPE indicates a more accurate model.
+        <hr>
+        <h4> Here is some information about the game and machine learning: </h4>
+        <p> The game will begin by displaying a scatterplot of some sales data. The scatterplot represents the
+            total sales (price x quantity) of vehicles sold globally across various regions.
+            You will be prompted to enter guesses on the total sales of vehicles for 5 specific dates. 
+            A machine learning model will also be running to predict the sales as well. 
+            Your job is to do a better job of predicting than the machine.
         </p>
-    <hr> </hr>
-    <h4> Ready to Play? </h4>
-    <p> If you are ready to play, click the button below! </p>
-    <form action="/guess" method = "POST">
-    <p><input type = "submit" value = "Start game" /></p>
-    </form>
+        <hr>
+        <h4> Game Scoring </h4>
+        <p> The game is scored using Mean Absolute Percentage Error (MAPE). 
+            MAPE is a statistical measure that calculates the average percentage difference 
+            between predicted values and actual values. This essentially shows how far off a model's predictions are on average.
+            MAPE is expressed as a percentage, making it easy to interpret the accuracy of a forecast or prediction.
+            Lastly, a lower MAPE indicates a more accurate model.
+        </p>
+        <hr>
+        <h4> Ready to Play? </h4>
+        <p> If you are ready to play, click the button below! </p>
+        <form action="/guess" method="POST">
+            <button class="btn-custom">Start Game</button>
+        </form>
     </body>
     </html>
     '''
