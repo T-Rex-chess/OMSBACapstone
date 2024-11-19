@@ -55,6 +55,11 @@ status = [
 ]
 
 
+start = 0
+
+
+sv = 0
+
 # Connect to Data --------------------------------------------------------------------------------------------------------
 file_url = 'https://raw.githubusercontent.com/T-Rex-chess/OMSBACapstone/main/data/sales_data_sample.csv'
 sales_data = pd.read_csv(file_url, encoding='ISO-8859-1') #Handles wider range of special char.
@@ -202,12 +207,16 @@ class DataLoader(BaseManager):
     
     
     
-    def ordered_split_data(self, target_y_column, target_x_columns = None, test_value = -5, cull = False, n = 30):
-        od = self.data        
+    def ordered_split_data(self, target_y_column, target_x_columns = None, test_value = -5, cull = False, n = 35):
+        global start
+        od = self.data
+
         if target_x_columns == None:
             od = od.sort_values(target_y_column)
             if cull == True:
-                start = random.randint(0, len(od.index - n-1))
+                if sv == 0:
+                    start = random.randint(0, len(od.index - n-1))
+                    
                 df = od.iloc[start:start+n+1]
                 od = df
             else: 
@@ -223,7 +232,8 @@ class DataLoader(BaseManager):
                 else:
                     cols_to_drop.append(i)
             if cull == True:
-                start = random.randint(0, len(od.index - n-1))
+                if sv == 0:
+                    start = random.randint(0, len(od.index - (n+6)))
                 df = od.iloc[start:start+n+1]
                 od = df
             else: 
@@ -343,6 +353,8 @@ class DataLoader(BaseManager):
     
     def aggregate_by_date(self):
         aggregated_data = self.data.groupby('ORDERDATE')['SALES'].sum().reset_index()
+        self.data = aggregated_data
+        #print(aggregated_data)
         return aggregated_data
 
 
@@ -629,7 +641,7 @@ print(f"\nYou selected: {selected_topic}")
 # player filters the data
 # insert code here once filter functions working on dataset
 '''
-
+'''
 # Display the summary statistics of the data
 print("\n")
 print("Here are the summary statistics of the Sales Data: \n")
@@ -643,7 +655,7 @@ summ_stats_df.handle_missing_values()
 summary_stats = summ_stats_df.get_summary_stats()
 print(summary_stats)
 
-
+'''
 # Begin Charting / Load Flask & Bokeh ----------------------------------------------------------------------
 '''
 print("\n")
@@ -656,8 +668,24 @@ print('Here is a chart of the data:')
 
 # Run the Application Start Bokeh Charts -------------------------------------------------------------------
 Plot_Title = 'Dummy Data'
+
 '''
+
+theme = {
+    "background": "#141A2D",
+    "text_color": "#FFFFFF",
+    "button_bg": "#4E7CFF",
+    "button_hover": "#7033FF",
+    "accent_color": "#F65164",
+    "chart_background": "#252C40",
+    "tooltip_bg": "#252C40",
+    "tooltip_text_color": "#FFFFFF",
+    "neutral": "#DC7653"
+}
+
 def bridge(data_set, cull = False):
+    
+
     # this is essentialy hard coded for now but I think making different paths for each dataset based on the collums we actually use makes sense, can be altered later.
     if data_set == "Sales":
         
@@ -665,17 +693,18 @@ def bridge(data_set, cull = False):
         
         # add filter productline !!!
         # insert filter for productline here
-        data_loader.select_and_drop()
-        data_loader.aggregate_by_date()
         data_loader.preprocess_data()
         data_loader.handle_missing_values()
+        #selecting handled by orderd split data
+        data_loader.aggregate_by_date()
+       
         
         
 
         #data_loader.ordered_and_drop()
         
         X_train, X_test, y_train, y_test = data_loader.ordered_split_data(target_y_column='SALES', target_x_columns=['ORDERDATE'], test_value=-5, cull = cull)
-        
+
         X_train = X_train.to_numpy()
         X_train = np.transpose(X_train)
         X_train = X_train[0]
@@ -689,100 +718,76 @@ def bridge(data_set, cull = False):
         return  X_train, X_test, y_train, y_test,  Plot_Title
 
 
-dark_theme = {
-    "background": "#141A2D",
-    "text_color": "#FFFFFF",
-    "button_bg": "#4E7CFF",
-    "button_hover": "#7033FF",
-    "accent_color": "#F65164",
-    "chart_background": "#252C40",
-    "tooltip_bg": "#252C40",
-    "tooltip_text_color": "#FFFFFF",
-    "neutral": "#DC7653"
-}
-
-
 @app.route('/')
 def start_page():
-    theme = {
-        "background": "#141A2D",
-        "text_color": "#FFFFFF",
-        "button_bg": "#4E7CFF",
-        "button_hover": "#7033FF",
-        "accent_color": "#F65164",
-        "chart_background": "#252C40",
-        "tooltip_bg": "#252C40",
-        "tooltip_text_color": "#FFFFFF",
-        "neutral": "#DC7653"
-    }
-
+    #return render_template('start_page.html')
     return f'''
     <html lang="en">
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Welcome to Xtrapolate</title>
-        <style>
-            body {{
-                background-color: {theme['background']};
-                color: {theme['text_color']};
-                font-family: 'Segoe UI', sans-serif;
-                margin: 0;
-                padding: 20px;
-                text-align: center;
-            }}
-            h1, h2, h3, h4, p {{
-                color: {theme['text_color']};
-            }}
-            hr {{
-                border: 1px solid {theme['neutral']};
-            }}
-            .btn-custom {{
-                background-color: {theme['button_bg']};
-                color: {theme['text_color']};
-                border: none;
-                padding: 10px 15px;
-                border-radius: 5px;
-                font-size: 16px;
-                cursor: pointer;
-                transition: background-color 0.3s ease;
-            }}
-            .btn-custom:hover {{
-                background-color: {theme['button_hover']};
-            }}
-        </style>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Welcome to Xtrapolate</title>
+      <style>
+          body {{
+              background-color: {theme['background']};
+              color: {theme['text_color']};
+              font-family: 'Segoe UI', sans-serif;
+              margin: 0;
+              padding: 20px;
+              text-align: center;
+          }}
+          h1, h2, h3, h4, p {{
+              color: {theme['text_color']};
+          }}
+          hr {{
+              border: 1px solid {theme['neutral']};
+          }}
+          .btn-custom {{
+              background-color: {theme['button_bg']};
+              color: {theme['text_color']};
+              border: none;
+              padding: 10px 15px;
+              border-radius: 5px;
+              font-size: 16px;
+              cursor: pointer;
+              transition: background-color 0.3s ease;
+          }}
+          .btn-custom:hover {{
+              background-color: {theme['button_hover']};
+          }}
+      </style>
     </head>
-    <body>
-        <h1>Welcome to Xtrapolate!</h1>
-        <h2>a data science game</h2>
-        <h3>Created by: Thomas Taylor, Jomaica Lei, Andy Turner</h3>
-        <hr>
-        <p> In this game, you will compete against a machine learning model to predict values of a sales dataset. </p>
-        <p> The sales dataset is sourced from Kaggle, and is available here: 
-            <a href="https://www.kaggle.com/datasets/kyanyoga/sample-sales-data" style="color: {theme['accent_color']}; text-decoration: none;">Sales Dataset</a>
+    
+    
+    <body>      
+    <h1>Welcome to Xtrapolate!</h1>
+    <h2>a data science game</h2>
+    <h3>Created by: Thomas Taylor, Jomaica Lei, Andy Turner</h3>
+    <hr> </hr>
+    <p> In this game, you will compete against a machine learning model to predict values of a sales dataset. </p>
+    <p> The sales dataset is sourced from Kaggle, and is available here: https://www.kaggle.com/datasets/kyanyoga/sample-sales-data </p>
+    <hr> </hr>
+    <h4> Here is some information about the game and machine learning: </h4>
+    <p> The game will begin by displaying a scatterplot of some sales data. The scatterplot represents the
+        total sales (price x quantity) of vehicles sold globally across various regions.
+        You will be prompted to enter guesses on the total sales of vehicles for 5 specific dates. 
+        A machine learning model will also be running to predict the sales as well. 
+        Your job is to do a better job of predicting than the machine.
         </p>
-        <hr>
-        <h4> Here is some information about the game and machine learning: </h4>
-        <p> The game will begin by displaying a scatterplot of some sales data. The scatterplot represents the
-            total sales (price x quantity) of vehicles sold globally across various regions.
-            You will be prompted to enter guesses on the total sales of vehicles for 5 specific dates. 
-            A machine learning model will also be running to predict the sales as well. 
-            Your job is to do a better job of predicting than the machine.
+    <hr> </hr>
+    <h4> Game Scoring </h4>
+    <p> The game is scored using Mean Absolute Percentage Error (MAPE). 
+        MAPE is a statistical measure that calculates the average percentage difference 
+        between predicted values and actual values. This essentially shows how far off a model's predictions are on average.
+        MAPE is expressed as a percentage, making it easy to interpret the accuracy of a forecast or prediction.
+        Lastly, a lower MAPE indicates a more accurate model.
         </p>
-        <hr>
-        <h4> Game Scoring </h4>
-        <p> The game is scored using Mean Absolute Percentage Error (MAPE). 
-            MAPE is a statistical measure that calculates the average percentage difference 
-            between predicted values and actual values. This essentially shows how far off a model's predictions are on average.
-            MAPE is expressed as a percentage, making it easy to interpret the accuracy of a forecast or prediction.
-            Lastly, a lower MAPE indicates a more accurate model.
-        </p>
-        <hr>
-        <h4> Ready to Play? </h4>
-        <p> If you are ready to play, click the button below! </p>
-        <form action="/guess" method="POST">
-            <button class="btn-custom">Start Game</button>
-        </form>
+    <hr> </hr>
+    <h4> Ready to Play? </h4>
+    <p> If you are ready to play, click the button below! </p>
+    <form action="/guess" method = "POST">
+    <p><input type = "submit" value = "Start game" /></p>
+    </form>
     </body>
     </html>
     '''
@@ -791,45 +796,89 @@ def start_page():
 # NEED TO FEED AN ARRAY INTO THE GUESS FUNCTION SO IT WORKS
 @app.route('/guess/', methods = ['POST', 'GET'])
 def guess():
+    
+
+    
     if request.method == 'GET':
         return f"The URL /guess is accessed directly. Try going to '/form' to submit form"
     if request.method == 'POST':
         # Creating Plot Figure
         
-        X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales")
+
         
-        test1 = [1, 2, 3]
-        test2 = [4, 5, 6]
+        X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales", True)
+        
+
 
         start_shade = X_test[0]
         end_shade = X_test[4]
         box = BoxAnnotation(left=start_shade, right=end_shade, fill_alpha=0.4, fill_color='lightblue')
         
         p = figure(height=350, x_axis_type='datetime', sizing_mode="stretch_width")
+        #for changing chart background color: , background_fill_color=theme['chart_background']
         p.xaxis.axis_label = "Calendar Date"
         p.yaxis.axis_label = "Sum of Vehicle Sales"
         p.add_tools(HoverTool())
         # Defining Plot to be a Scatter Plot
-        p.circle( 	[i for i in X_train],
+        p.scatter( 	[i for i in X_train],
     		[j for j in y_train],
             size=20,
             color="blue",
             alpha=0.5
         )
-        p.legend.location = 'top_left'
+        #p.legend.location = 'top_left'
         p.add_layout(box)
         
         # Get Chart Components
         script, div = components(p)
     
-    
+        global sv
+        
+        sv = 1
         # Return the components to the HTML template
         return f'''
     	<html lang="en">
     		<head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
     			<script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.4.3.min.js"></script>
     			<title>Bokeh Charts</title>
-    		</head>
+                <style>
+                    body {{
+                        background-color: {theme['background']};
+                        color: {theme['text_color']};
+                        font-family: 'Segoe UI', sans-serif;
+                        margin: 0;
+                        padding: 20px;
+                        text-align: center;
+                    }}
+                    h1, h2, h3, p {{
+                        color: {theme['text_color']};
+                    }}
+                    .btn-custom {{
+                        background-color: {theme['button_bg']};
+                        color: {theme['text_color']};
+                        border: none;
+                        padding: 10px 15px;
+                        border-radius: 5px;
+                        font-size: 16px;
+                        cursor: pointer;
+                        transition: background-color 0.3s ease;
+                    }}
+                    .btn-custom:hover {{
+                        background-color: {theme['button_hover']};
+                    }}
+                    input {{
+                        background-color: {theme['chart_background']};
+                        color: {theme['text_color']};
+                        border: 1px solid {theme['neutral']};
+                        border-radius: 4px;
+                        padding: 5px;
+                        margin: 5px;
+                    }}
+                </style>       
+            
+            </head>
     		<body>
     			<h1> Graph of Sum of Vehicle Sales ($) by Calendar Date </h1>
                 <h2> The below scatterplot displays the aggregate sum of the $ amount of vehicles sold on a given calendar date (Sales = Price * Quantity Sold) </h2>
@@ -859,6 +908,10 @@ def display():
     if request.method == 'GET':
         return f"The URL /data is accessed directly. Try going to '/form' to submit form"
     if request.method == 'POST':
+        
+        global sv
+        
+        sv = 1
         
         X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales")
         
@@ -915,7 +968,7 @@ def display():
         p.add_tools(HoverTool())
 
         # Defining Plot to be a Scatter Plot
-        p.circle(
+        p.scatter(
             [i for i in X_train],
             [j for j in y_train],
             size=20,
@@ -924,7 +977,7 @@ def display():
             legend_label = "Historical Actuals"
         )
         
-        p.circle(
+        p.scatter(
             [i for i in X_test],
             [j for j in y_test],
             size=20,
@@ -933,7 +986,7 @@ def display():
             legend_label = 'Actual Values (from Prediction Dates)'
         )
         
-        p.circle(
+        p.scatter(
             [i for i in X_test],
             [j for j in user_guesses],
             size=20,
@@ -942,7 +995,7 @@ def display():
             legend_label = "Player Predicted value"
         )
         
-        p.circle(
+        p.scatter(
             [i for i in X_test],
             [j for j in ML_pred],
             size=20,
@@ -955,12 +1008,52 @@ def display():
 
         # Get Chart Components
         script, div = components(p)
+        
+        sv = 0
+        
         if user_mape <= regr_mape: 
             return  f'''
         <html lang="en">
             <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.4.3.min.js"></script>
                 <title>Bokeh Charts 2</title>
+                <style>
+                    body {{
+                        background-color: {theme['background']};
+                        color: {theme['text_color']};
+                        font-family: 'Segoe UI', sans-serif;
+                        margin: 0;
+                        padding: 20px;
+                        text-align: center;
+                    }}
+                    h1, h2, h3, p {{
+                        color: {theme['text_color']};
+                    }}
+                    .btn-custom {{
+                        background-color: {theme['button_bg']};
+                        color: {theme['text_color']};
+                        border: none;
+                        padding: 10px 15px;
+                        border-radius: 5px;
+                        font-size: 16px;
+                        cursor: pointer;
+                        transition: background-color 0.3s ease;
+                    }}
+                    .btn-custom:hover {{
+                        background-color: {theme['button_hover']};
+                    }}
+                    input {{
+                        background-color: {theme['chart_background']};
+                        color: {theme['text_color']};
+                        border: 1px solid {theme['neutral']};
+                        border-radius: 4px;
+                        padding: 5px;
+                        margin: 5px;
+                    }}
+                </style>     
+                
             </head>
             <body>
                 <h1> Here are the results of the predictions: </h1>
@@ -982,8 +1075,45 @@ def display():
             return  f'''
         <html lang="en">
             <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.4.3.min.js"></script>
                 <title>Bokeh Charts 2</title>
+                <style>
+                    body {{
+                        background-color: {theme['background']};
+                        color: {theme['text_color']};
+                        font-family: 'Segoe UI', sans-serif;
+                        margin: 0;
+                        padding: 20px;
+                        text-align: center;
+                    }}
+                    h1, h2, h3, p {{
+                        color: {theme['text_color']};
+                    }}
+                    .btn-custom {{
+                        background-color: {theme['button_bg']};
+                        color: {theme['text_color']};
+                        border: none;
+                        padding: 10px 15px;
+                        border-radius: 5px;
+                        font-size: 16px;
+                        cursor: pointer;
+                        transition: background-color 0.3s ease;
+                    }}
+                    .btn-custom:hover {{
+                        background-color: {theme['button_hover']};
+                    }}
+                    input {{
+                        background-color: {theme['chart_background']};
+                        color: {theme['text_color']};
+                        border: 1px solid {theme['neutral']};
+                        border-radius: 4px;
+                        padding: 5px;
+                        margin: 5px;
+                    }}
+                </style>     
+                
             </head>
             <body>
                 <h1> Here are the results of the predictions: </h1>
