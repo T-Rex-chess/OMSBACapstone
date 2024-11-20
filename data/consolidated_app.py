@@ -913,7 +913,7 @@ def display():
         
         sv = 1
         
-        X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales")
+        X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales", True)
         
         
         train_days = []
