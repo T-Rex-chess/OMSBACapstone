@@ -674,7 +674,7 @@ Plot_Title = 'Dummy Data'
 theme = {
     "background": "#141A2D",
     "text_color": "#FFFFFF",
-    "button_bg": "#4E7CFF",
+    "button_bg": "#F65164",
     "button_hover": "#7033FF",
     "accent_color": "#F65164",
     "chart_background": "#252C40",
