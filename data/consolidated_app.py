@@ -765,7 +765,9 @@ def start_page():
     <h3>Created by: Thomas Taylor, Jomaica Lei, Andy Turner</h3>
     <hr> </hr>
     <p> In this game, you will compete against a machine learning model to predict values of a sales dataset. </p>
-    <p> The sales dataset is sourced from Kaggle, and is available here: https://www.kaggle.com/datasets/kyanyoga/sample-sales-data </p>
+    <p> The sales dataset is sourced from Kaggle, and is available here: 
+            <a href="https://www.kaggle.com/datasets/kyanyoga/sample-sales-data" style="color: {theme['accent_color']}; text-decoration: none;">Sales Dataset</a>
+    </p>
     <hr> </hr>
     <h4> Here is some information about the game and machine learning: </h4>
     <p> The game will begin by displaying a scatterplot of some sales data. The scatterplot represents the
