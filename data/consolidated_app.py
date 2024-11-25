@@ -755,6 +755,38 @@ def start_page():
           .btn-custom:hover {{
               background-color: {theme['button_hover']};
           }}
+          
+          
+          .collapsible {{
+          background-color: {theme['background']};
+          color: {theme['text_color']};
+          cursor: pointer;
+          padding: 20px;
+          width: 100%;
+          border: none;
+          text-align: center;
+          outline: none;
+          font-size: 15px;
+        }}
+          
+
+          
+          .content {{
+          padding: 0 500px;
+          display: none;
+          overflow: hidden;
+          background-color: {theme['background']};
+        }}
+          
+          input {{
+              background-color: {theme['chart_background']};
+              color: {theme['text_color']};
+              border: 1px solid {theme['neutral']};
+              border-radius: 4px;
+              padding: 5px;
+              margin: 5px;
+          }}
+          
       </style>
     </head>
     
@@ -768,28 +800,62 @@ def start_page():
     <p> The sales dataset is sourced from Kaggle, and is available here: 
             <a href="https://www.kaggle.com/datasets/kyanyoga/sample-sales-data" style="color: {theme['accent_color']}; text-decoration: none;">Sales Dataset</a>
     </p>
+    
+    <p> The Baby Names Data comes from the US Social Security Administration, and is available here: 
+            <a href="https://catalog.data.gov/dataset/baby-names-from-social-security-card-applications-national-datas" style="color: {theme['accent_color']}; text-decoration: none;">Baby Names Dataset</a>
+    </p>
+    
     <hr> </hr>
-    <h4> Here is some information about the game and machine learning: </h4>
-    <p> The game will begin by displaying a scatterplot of some sales data. The scatterplot represents the
-        total sales (price x quantity) of vehicles sold globally across various regions.
-        You will be prompted to enter guesses on the total sales of vehicles for 5 specific dates. 
-        A machine learning model will also be running to predict the sales as well. 
-        Your job is to do a better job of predicting than the machine.
-        </p>
+    <button type="button" class="collapsible">How to Play </button>
+    <div class="content">
+        <p> The game will begin by displaying a scatterplot of some sales data. The scatterplot represents the
+                total sales (price x quantity) of vehicles sold globally across various regions.
+                You will be prompted to enter guesses on the total sales of vehicles for 5 specific dates. 
+                A machine learning model will also be running to predict the sales as well. 
+                Your job is to do a better job of predicting than the machine.</p>
+    </div>
+
     <hr> </hr>
-    <h4> Game Scoring </h4>
-    <p> The game is scored using Mean Absolute Percentage Error (MAPE). 
-        MAPE is a statistical measure that calculates the average percentage difference 
-        between predicted values and actual values. This essentially shows how far off a model's predictions are on average.
-        MAPE is expressed as a percentage, making it easy to interpret the accuracy of a forecast or prediction.
-        Lastly, a lower MAPE indicates a more accurate model.
-        </p>
+
+    <button type="button" class="collapsible">Game Scoring</button>
+    <div class="content">
+
+        <p> The game is scored using Mean Absolute Percentage Error 
+        <a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error" style="color: {theme['accent_color']}; text-decoration: none;">(MAPE)</a>. 
+            MAPE is a statistical measure that calculates the average percentage difference 
+            between predicted values and actual values. This essentially shows how far off a model's predictions are on average.
+            MAPE is expressed as a percentage, making it easy to interpret the accuracy of a forecast or prediction.
+            Lastly, a lower MAPE indicates a more accurate model.</p>
+    </div>
+
     <hr> </hr>
     <h4> Ready to Play? </h4>
     <p> If you are ready to play, click the button below! </p>
     <form action="/guess" method = "POST">
     <p><input type = "submit" value = "Start game" /></p>
     </form>
+    
+    <script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {{
+  coll[i].addEventListener("click", function() {{
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {{
+      content.style.display = "none";
+    }} else {{
+      content.style.display = "block";
+    }}
+  }});
+}}
+</script>
+    
+    
+   
+    
+    
     </body>
     </html>
     '''
@@ -820,7 +886,7 @@ def guess():
         #for changing chart background color: , background_fill_color=theme['chart_background']
         p.xaxis.axis_label = "Calendar Date"
         p.yaxis.axis_label = "Sum of Vehicle Sales"
-        p.add_tools(HoverTool())
+        # p.add_tools(HoverTool())
         # Defining Plot to be a Scatter Plot
         p.scatter( 	[i for i in X_train],
     		[j for j in y_train],
@@ -967,7 +1033,7 @@ def display():
         p = figure(height=350, x_axis_type='datetime', sizing_mode="stretch_width")
         p.xaxis.axis_label = "Calendar Date"
         p.yaxis.axis_label = "Sum of Vehicle Sales"
-        p.add_tools(HoverTool())
+        # p.add_tools(HoverTool())
 
         # Defining Plot to be a Scatter Plot
         p.scatter(
