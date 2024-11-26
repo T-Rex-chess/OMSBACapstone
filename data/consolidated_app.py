@@ -718,7 +718,7 @@ def bridge(data_set, cull = False):
         return  X_train, X_test, y_train, y_test,  Plot_Title
 
 
-@app.route('/')
+@app.route('/', methods = ['POST', 'GET'])
 def start_page():
     #return render_template('start_page.html')
     return f'''
@@ -957,11 +957,11 @@ def guess():
                 <p> After you submit your guesses, a machine learning model will also make some predictions. Can you beat the machine by predicting values more accurately? Good luck! </p>
                 
                 <form action="/display" method = "POST">
-        <p> {str(X_test[0]):.10} <input type = "number" step = "any" name = "g1" required /></p>
-        <p> {str(X_test[1]):.10} <input type = "number" step = "any" name = "g2"  required /></p>
-        <p> {str(X_test[2]):.10} <input type = "number" step = "any" name = "g3" required /></p>
-        <p> {str(X_test[3]):.10} <input type = "number" step = "any" name = "g4" required /></p>
-        <p> {str(X_test[4]):.10} <input type = "number" step = "any" name = "g5" required /></p>
+        <p> {str(X_test[0]):.10} <input type = "number" step = "any" name = "g1" value = 0 required /></p>
+        <p> {str(X_test[1]):.10} <input type = "number" step = "any" name = "g2" value = 0  required /></p>
+        <p> {str(X_test[2]):.10} <input type = "number" step = "any" name = "g3" value = 0 required /></p>
+        <p> {str(X_test[3]):.10} <input type = "number" step = "any" name = "g4" value = 0 required /></p>
+        <p> {str(X_test[4]):.10} <input type = "number" step = "any" name = "g5" value = 0 required /></p>
         <p><input type = "submit" value = "Submit" /></p>
         </form>
                 
