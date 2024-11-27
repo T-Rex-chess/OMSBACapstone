@@ -224,36 +224,46 @@ class DataLoader(BaseManager):
     
     
     
-    def get_baby(self, name = None, n = 50, test_value = -5):
+    def get_baby(self, name = None, n = 50, test_value = -5, minsum = 99):
         global bn
         global start
         
-        print('baba')
+
         if sv == 0:
             start = random.randint(1880, 2024 - n)
             if name == None:
-                bn = random.choice(list(self.data.columns))
+                bnsum = 0
+                while bnsum < minsum:
+                    bn = random.choice(list(self.data.columns))
+                    name_ser = self.data[bn].tolist()
+                    df = name_ser[(start - 1880):(start+n-1880)]
+                    bnsum = sum(df)
+                
+                
             else:
                 bn = name
-        
-        
-        name_ser = self.data[bn].tolist()
-        
-        print(f'{bn} baby  {name_ser} ys')
+                
+                name_ser = self.data[bn].tolist()
 
-        df = name_ser[(start - 1880):(start+n-1879)]
-        od = df
+                df = name_ser[(start - 1880):(start+n-1880)]
+        else:
+            name_ser = self.data[bn].tolist()
+            
+            df = name_ser[(start - 1880):(start+n-1880)]
         
-        print(od)
-        x = list(range(start, (start+n+1)))
+        
+
+        
+
+        x = list(range(start, (start+n)))
         
         #x = list(map(int, x))
     
         print(x)
         
-        y_train = od[0:test_value]
+        y_train = df[0:test_value]
         X_train = x[0:test_value]
-        y_test = od[test_value:]
+        y_test = df[test_value:]
         X_test = x[test_value:]
         
         return X_train, X_test, y_train, y_test
@@ -380,7 +390,7 @@ class DataLoader(BaseManager):
         # use the sample method to randomly select
         start = random.randint(0, len(self.data.index - n-1))
         #print(start)
-        df = self.data.iloc[start:start+n+1]
+        df = self.data.iloc[start:start+n]
         self.data = df
         return self.data
 
@@ -416,7 +426,11 @@ class DataLoader(BaseManager):
 # ModelManager Class ---------------------------------------------------------------------------------------
 class ModelManager:
     def __init__(self):
+    
         self.model = LinearRegression()
+            
+       
+            
 
     def fit(self, X, y):
         # feed X train and Y train
@@ -500,9 +514,18 @@ class ModelManager:
                 break
         return intercept, coefficients, pred
 
-    def polynomial_model(degree):
+    def poly_fit_pred(self, degree, X, y, x_t):
         """Creates a polynomial regression model of a given degree."""
-        return make_pipeline(PolynomialFeatures(degree), LinearRegression())
+        
+        poly = PolynomialFeatures(degree)
+        
+        X_poly = poly.fit_transform(X)
+        
+        self.model.fit(X_poly, y)
+        
+        Xt_poly = poly.fit_transform(x_t)
+        
+        return self.model.predict(Xt_poly)
         '''
         Example usage polynomial_model:
         model = create_polynomial_model(2)
@@ -515,7 +538,20 @@ class ModelManager:
 
     def mape(self, y_true, y_pred): 
         y_true, y_pred = np.array(y_true), np.array(y_pred)
-        return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+        
+        mape = np.mean(np.abs((y_true - y_pred) / y_true+.00000001)) * 100
+        
+        if mape == np.inf:
+            mape = 100
+        
+        elif mape == np.nan:
+            mape = 0
+            
+        elif mape > 100: 
+            mape = 100
+
+        
+        return mape
 
 # How to Use the ModelManager Class ----------------------
 # Create an instance of the class
@@ -572,158 +608,8 @@ class ScoreManager:
 
 
 
-# Ready for ResultVisualizer Class !!! --------------------------------------------------------------------------
-'''
-def auto_reg_lin(x, y, X_test):
-    x = np.array(x)
-    y = np.array(y)
-    X_test = np.array(X_test)
-    while True:
-        try: 
-            model = LinearRegression().fit(x, y)
-            intercept, coefficients = model.intercept_, model.coef_
-            pred = model.predict(X_test) 
-        except ValueError:
-    #if x is one dimensional
-            x = x.reshape(-1, 1)
-            X_test = X_test.reshape(-1, 1)
-            continue
-        else:
-            break
-    return intercept, coefficients, pred
-'''
-
-'''
-# ----- RUN THE BACKEND PROGRAM !!! -----------------------------------------------------------------------------
-# Call the DataLoader Class -------------------------------------------------------------------------------------
-print('Backend code testing/debugging beginning')
-print("\n")
-print("Beginning program execution \n")
-print("Calling the DataLoader Class \n")
-# Call the methods from the DataLoader class
-data_loader = DataLoader(sales_data)
-data_loader.preprocess_data()
-data_loader.handle_missing_values()
-
-# Split the data (assuming 'SALES' is the target column)
-X_train, X_test, y_train, y_test = data_loader.split_data(target_y_column='SALES', target_x_columns=['ORDERDATE'])
-print('X_train data: \n', X_train)
 
 
-# Output first few rows of training data for verification
-print("First few rows of training data: \n", X_train.head())
-
-# Display summary statistics
-print("Here are the summary statistics of the Sales Dataframe: \n")
-summ_stats_df = DataLoader(sales_data_df)
-summ_stats_df.preprocess_data()
-summ_stats_df.handle_missing_values()
-summary_stats = summ_stats_df.get_summary_stats()
-print("\n")
-print("Summary Statistics on the DataFrame:")
-print(summary_stats)
-
-# Dataset is preprocessed and cleaned ready for testing and predictions !!!
-
-
-# Call the ModelManager Class -----------------------------------------------------------------------------------
-# Call the methods from the ModelManager class
-print("\nCalling the ModelManager Class to Fit the LinearRegression Model")
-regr = ModelManager() #create instance of the ModelManager class
-regr.fit(X_train, y_train)
-y_pred = regr.predict(X_test)
-mse, r2, mape = regr.evaluate(X_test, y_test)
-coefficients = regr.get_coefficients()
-intercept = regr.get_intercept()
-weights = regr.return_weights()
-print('Weights: ', weights)
-
-print("Here are the results of the fitted linear model: ")
-print("MSE: ", mse)
-print("r2: ", r2)
-print("MAPE: ", mape)
-print("\n")
-
-print("Backend Program Executed Successfully \n \n \n")
-print("---------------------------------------------------- \n")
-
-
-# Convert to arrays for Flask
-"""
-X_train = X_train.to_numpy()
-X_test = X_test.to_numpy()
-y_train = y_train.to_numpy()
-y_test = y_test.to_numpy()
-"""
-'''
-'''
-data_loader = DataLoader(sales_data)
-data_loader.select_and_drop()
-print('Here is the row count of the dataframe: ',data_loader.row_count())
-data_loader.preprocess_data()
-data_loader.handle_missing_values()
-print('Here is the row count of the processed dataframe: ',data_loader.row_count())
-'''
-
-# END of BACKEND PROGRAM ----------------------------------------------------------------------------------------
-# ---------------------------------------------------------------------------------------------------------------
-# START FRONT END PROGRAM AND GUI -------------------------------------------------------------------------------
-
-
-# Eventually reshuffle all the code around so this makes sense with the backend program -------------------------
-# START GAMEPLAY LOOP -------------------------------------------------------------------------------------------
-'''
-print('Welcome to Xtrapolate: Gamified Data Science!')
-print("In this game, you will attempt to guess values based on some graphed data.")
-print("Are you ready to play? \n")
-
-# Initialize the game
-game = GameManager(topics, difficulty, 0, 1)
-print('Calling the Game:\n')
-
-
-# player selects difficulty
-game.display_difficulty()
-selected_difficulty = game.get_difficulty_selection()
-print(f"\nYou selected: {selected_difficulty}")
-
-# player selects topic
-game.display_topics()
-selected_topic = game.get_topic_selection()
-print(f"\nYou selected: {selected_topic}")
-
-# player filters the data
-# insert code here once filter functions working on dataset
-'''
-'''
-# Display the summary statistics of the data
-print("\n")
-print("Here are the summary statistics of the Sales Data: \n")
-summ_stats_df = DataLoader(sales_data_df)
-summ_stats_df.select_and_drop()
-print('Here is the row count after dropping some of the data: ', summ_stats_df.row_count())
-summ_stats_df.aggregate_by_date()
-print('Here is the row count after aggregating the data: ', summ_stats_df.row_count())
-summ_stats_df.preprocess_data()
-summ_stats_df.handle_missing_values()
-summary_stats = summ_stats_df.get_summary_stats()
-print(summary_stats)
-
-'''
-# Begin Charting / Load Flask & Bokeh ----------------------------------------------------------------------
-'''
-print("\n")
-print('Here is a chart of the data:')
-# Display the chart here ----------------
-
-
-# Debugging for Flask/Bokeh
-#print("X test data: ", X_test[0])
-
-# Run the Application Start Bokeh Charts -------------------------------------------------------------------
-Plot_Title = 'Dummy Data'
-
-'''
 
 theme = {
     "background": "#141A2D",
@@ -749,7 +635,7 @@ def bridge(data_set, cull = False):
         
         #data_loader.handle_missing_values()
         
-        X_train, X_test, y_train, y_test = data_loader.get_baby('John')
+        X_train, X_test, y_train, y_test = data_loader.get_baby()
         
         Plot_Title = f"Baby's born in America each year named {bn}"
         
@@ -793,7 +679,7 @@ def bridge(data_set, cull = False):
     return  X_train, X_test, y_train, y_test,  Plot_Title
 
 
-@app.route('/')
+@app.route('/', methods = ['POST', 'GET'])
 def start_page():
     #return render_template('start_page.html')
     return f'''
@@ -830,41 +716,109 @@ def start_page():
           .btn-custom:hover {{
               background-color: {theme['button_hover']};
           }}
+          
+          
+          .collapsible {{
+          background-color: {theme['background']};
+          color: {theme['text_color']};
+          cursor: pointer;
+          padding: 20px;
+          width: 100%;
+          border: none;
+          text-align: center;
+          outline: none;
+          font-size: 15px;
+        }}
+          
+
+          
+          .content {{
+          padding: 0 500px;
+          display: none;
+          overflow: hidden;
+          background-color: {theme['background']};
+        }}
+          
+          input {{
+              background-color: {theme['chart_background']};
+              color: {theme['text_color']};
+              border: 1px solid {theme['neutral']};
+              border-radius: 4px;
+              padding: 5px;
+              margin: 5px;
+          }}
+          
       </style>
     </head>
     
     
     <body>      
     <h1>Welcome to Xtrapolate!</h1>
-    <h2>a data science game</h2>
+    <h2>A Data Science Game</h2>
     <h3>Created by: Thomas Taylor, Jomaica Lei, Andy Turner</h3>
     <hr> </hr>
-    <p> In this game, you will compete against a machine learning model to predict values of a sales dataset. </p>
+    <h2>Think you can beat the Machine? </h2>
+    <p> In this game, you are given a graph of past values from various datasets and asked to predict the next 5 datapoints.  </p>
+    <p> Watch out, because a machine learning model will also be trying to guess. </p>
     <p> The sales dataset is sourced from Kaggle, and is available here: 
             <a href="https://www.kaggle.com/datasets/kyanyoga/sample-sales-data" style="color: {theme['accent_color']}; text-decoration: none;">Sales Dataset</a>
     </p>
+    
+    <p> The Baby Names Data comes from the US Social Security Administration, and is available here: 
+            <a href="https://catalog.data.gov/dataset/baby-names-from-social-security-card-applications-national-datas" style="color: {theme['accent_color']}; text-decoration: none;">Baby Names Dataset</a>
+    </p>
+    
     <hr> </hr>
-    <h4> Here is some information about the game and machine learning: </h4>
-    <p> The game will begin by displaying a scatterplot of some sales data. The scatterplot represents the
-        total sales (price x quantity) of vehicles sold globally across various regions.
-        You will be prompted to enter guesses on the total sales of vehicles for 5 specific dates. 
-        A machine learning model will also be running to predict the sales as well. 
-        Your job is to do a better job of predicting than the machine.
-        </p>
+    <button type="button" class="collapsible">How to Play </button>
+    <div class="content">
+        <p> The game will begin by displaying a scatterplot of some sales data. The scatterplot represents the
+                total sales (price x quantity) of vehicles sold globally across various regions.
+                You will be prompted to enter guesses on the total sales of vehicles for 5 specific dates. 
+                A machine learning model will also be running to predict the sales as well. 
+                Your job is to do a better job of predicting than the machine.</p>
+    </div>
+
     <hr> </hr>
-    <h4> Game Scoring </h4>
-    <p> The game is scored using Mean Absolute Percentage Error (MAPE). 
-        MAPE is a statistical measure that calculates the average percentage difference 
-        between predicted values and actual values. This essentially shows how far off a model's predictions are on average.
-        MAPE is expressed as a percentage, making it easy to interpret the accuracy of a forecast or prediction.
-        Lastly, a lower MAPE indicates a more accurate model.
-        </p>
+
+    <button type="button" class="collapsible">Game Scoring</button>
+    <div class="content">
+
+        <p> The game is scored using Mean Absolute Percentage Error 
+        <a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error" style="color: {theme['accent_color']}; text-decoration: none;">(MAPE)</a>. 
+            MAPE is a statistical measure that calculates the average percentage difference 
+            between predicted values and actual values. This essentially shows how far off a model's predictions are on average.
+            MAPE is expressed as a percentage, making it easy to interpret the accuracy of a forecast or prediction.
+            Lastly, a lower MAPE indicates a more accurate model.</p>
+    </div>
+
     <hr> </hr>
     <h4> Ready to Play? </h4>
     <p> If you are ready to play, click the button below! </p>
     <form action="/guess" method = "POST">
     <p><input type = "submit" value = "Start game" /></p>
     </form>
+    
+    <script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {{
+  coll[i].addEventListener("click", function() {{
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {{
+      content.style.display = "none";
+    }} else {{
+      content.style.display = "block";
+    }}
+  }});
+}}
+</script>
+    
+    
+   
+    
+    
     </body>
     </html>
     '''
@@ -895,7 +849,7 @@ def guess():
         #for changing chart background color: , background_fill_color=theme['chart_background']
         p.xaxis.axis_label = "Year"
         p.yaxis.axis_label = f"Number of Babies named {bn}"
-        p.add_tools(HoverTool())
+        #p.add_tools(HoverTool())
         # Defining Plot to be a Scatter Plot
         p.scatter( 	[i for i in X_train],
     		[j for j in y_train],
@@ -903,6 +857,8 @@ def guess():
             color="blue",
             alpha=0.5
         )
+        
+
         #p.legend.location = 'top_left'
         p.add_layout(box)
         
@@ -966,11 +922,11 @@ def guess():
                 <p> After you submit your guesses, a machine learning model will also make some predictions. Can you beat the machine by predicting values more accurately? Good luck! </p>
                 
                 <form action="/display" method = "POST">
-        <p> {str(X_test[0]):.10} <input type = "number" step = "any" name = "g1" required /></p>
-        <p> {str(X_test[1]):.10} <input type = "number" step = "any" name = "g2"  required /></p>
-        <p> {str(X_test[2]):.10} <input type = "number" step = "any" name = "g3" required /></p>
-        <p> {str(X_test[3]):.10} <input type = "number" step = "any" name = "g4" required /></p>
-        <p> {str(X_test[4]):.10} <input type = "number" step = "any" name = "g5" required /></p>
+        <p> {bn}'s born in {str(X_test[0]):.10} <input type = "number" step = "any" name = "g1" value = 0 required /></p>
+        <p> {bn}'s born in {str(X_test[1]):.10} <input type = "number" step = "any" name = "g2" value = 0  required /></p>
+        <p> {bn}'s born in {str(X_test[2]):.10} <input type = "number" step = "any" name = "g3" value = 0 required /></p>
+        <p> {bn}'s born in {str(X_test[3]):.10} <input type = "number" step = "any" name = "g4" value = 0 required /></p>
+        <p> {bn}'s born in {str(X_test[4]):.10} <input type = "number" step = "any" name = "g5" value = 0 required /></p>
         <p><input type = "submit" value = "Submit" /></p>
         </form>
                 
@@ -1014,22 +970,22 @@ def display():
         user_guesses.append(float(request.form.get("g4")))
         user_guesses.append(float(request.form.get("g5")))
         
-        weights = np.ones(len(y_test))
-        ybar = (sum(y_train)+sum(y_test))/(len(y_train)+len(y_test))
+        #weights = np.ones(len(y_test))
+        #ybar = (sum(y_train)+sum(y_test))/(len(y_train)+len(y_test))
         
         #create instance of ScoreManager()
-        s = ScoreManager()
-        user_score = s.scoring(user_guesses, y_test, weights, ybar)
+        #s = ScoreManager()
+        #user_score = s.scoring(user_guesses, y_test, weights, ybar)
         
         #create instance of ModelManager()
         regr = ModelManager()
         
         #ntercept, coefficients, ML_pred = regr.auto_reg_lin(X_train, y_train, X_test)
-        regr.fit(X_train.reshape(-1, 1), y_train)
-        gamecoefficients = regr.get_coefficients()
-        intercepts = regr.get_intercept()
-        ML_pred = regr.predict(X_test.reshape(-1, 1))
-        ML_Score = s.scoring(ML_pred, y_test, weights, ybar)
+        ML_pred  = regr.poly_fit_pred(2, X_train.reshape(-1, 1), y_train, X_test.reshape(-1, 1))
+        #gamecoefficients = regr.get_coefficients()
+        #intercepts = regr.get_intercept()
+        #ML_pred = regr.predict(X_test.reshape(-1, 1))
+        #ML_Score = s.scoring(ML_pred, y_test, weights, ybar)
 
         #get user MAPE:
         user_mape = round(regr.mape(y_test, user_guesses),2)
@@ -1041,7 +997,7 @@ def display():
         p = figure(height=350,  sizing_mode="stretch_width")
         p.xaxis.axis_label = "Year"
         p.yaxis.axis_label = f"Number of Babies named {bn}"
-        p.add_tools(HoverTool())
+        #p.add_tools(HoverTool())
 
         # Defining Plot to be a Scatter Plot
         p.scatter(
@@ -1128,6 +1084,37 @@ def display():
                         padding: 5px;
                         margin: 5px;
                     }}
+                    
+                    
+                    .collapsible {{
+                    background-color: {theme['background']};
+                    color: {theme['text_color']};
+                    cursor: pointer;
+                    padding: 20px;
+                    width: 100%;
+                    border: none;
+                    text-align: center;
+                    outline: none;
+                    font-size: 25px;
+                  }}
+                    
+
+                    
+                    .content {{
+                    padding: 0 500px;
+                    display: none;
+                    overflow: hidden;
+                    background-color: {theme['background']};
+                  }}
+                    table, th, td {{
+                  border: 2px solid red;
+                  border-collapse: collapse;
+                  text-align: center;
+                }}
+                th, td {{
+                  padding: 10px;
+                }}
+                    
                 </style>     
                 
             </head>
@@ -1138,12 +1125,77 @@ def display():
                 <h2> You Won this Round! Good job predicting! </h2>
                 <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>
                 <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
+                
+                
+                <button type="button" class="collapsible"> Results Table </button>
+                <div class="content">
+                    <table>
+                      <tr>
+                        <th>Year</th>
+                        <th>Actual Value</th>
+                        <th>User Prediction</th>
+                        <th>ML Prediction</th>
+                      </tr>
+                      <tr>
+                        <td>{str(X_test[0]):.10}</td>
+                        <td>{y_test[0]}</td>
+                        <td>{user_guesses[0]}</td>
+                        <td>{float(int(ML_pred[0]))}</td>
+                     <tr>
+                      <tr>
+                        <td>{str(X_test[1]):.10}</td>
+                        <td>{y_test[1]}</td>
+                        <td>{user_guesses[1]}</td>
+                        <td>{float(int(ML_pred[1]))}</td>
+                     <tr>
+                      <tr>
+                        <td>{str(X_test[2]):.10}</td>
+                        <td>{y_test[2]}</td>
+                        <td>{user_guesses[2]}</td>
+                        <td>{float(int(ML_pred[2]))}</td>
+                     <tr>
+                      <tr>
+                        <td>{str(X_test[3]):.10}</td>
+                        <td>{y_test[3]}</td>
+                        <td>{user_guesses[3]}</td>
+                       <td>{float(int(ML_pred[3]))}</td>
+                    
+                     <tr>
+                      <tr>
+                        <td>{str(X_test[4]):.10}</td>
+                        <td>{y_test[4]}</td>
+                        <td>{user_guesses[4]}</td>
+                        <td>{float(int(ML_pred[4]))}</td>
+                     <tr>
+                    
+                    </table>
+                </div>
+                
+                
                 <form action="/guess" method = "POST">
         <p><input type = "submit" value = "Nice work, think you can do it again?" /></p>
         </form>
                 <form action="/" method = "POST">
         <p><input type = "submit" value = "Return to Homepage" /></p>
         </form>
+        
+        <script>
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {{
+      coll[i].addEventListener("click", function() {{
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        if (content.style.display === "block") {{
+          content.style.display = "none";
+        }} else {{
+          content.style.display = "block";
+        }}
+      }});
+    }}
+    </script>
+        
             </body>
         </html>
         '''
@@ -1188,7 +1240,38 @@ def display():
                         padding: 5px;
                         margin: 5px;
                     }}
-                </style>     
+                    
+                    
+                    .collapsible {{
+                    background-color: {theme['background']};
+                    color: {theme['text_color']};
+                    cursor: pointer;
+                    padding: 20px;
+                    width: 100%;
+                    border: none;
+                    text-align: center;
+                    outline: none;
+                    font-size: 25px;
+                  }}
+                    
+
+                    
+                    .content {{
+                    padding: 0 500px;
+                    display: none;
+                    overflow: hidden;
+                    background-color: {theme['background']};
+                  }}
+                    
+                    table, th, td {{
+                  border: 2px solid red;
+                  border-collapse: collapse;
+                }}
+                th, td {{
+                  padding: 10px;
+                }}
+                    
+                </style>       
                 
             </head>
             <body>
@@ -1198,17 +1281,80 @@ def display():
             <h2> ML Wins this Round! Better luck next time. </h2>
             <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>                    
             <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
-        <form action="/guess" method = "POST">
-<p><input type = "submit" value = "Play again? Think you can beat the machine?" /></p>
+        <button type="button" class="collapsible"> Results Table </button>
+            <div class="content">
+                    <table>
+                      <tr>
+                        <th>Year</th>
+                        <th>Actual Value</th>
+                        <th>User Prediction</th>
+                        <th>ML Prediction</th>
+                      </tr>
+                      <tr>
+                        <td>{str(X_test[0]):.10}</td>
+                        <td>{y_test[0]}</td>
+                        <td>{user_guesses[0]}</td>
+                        <td>{float(int(ML_pred[0]))}</td>
+                     <tr>
+                      <tr>
+                        <td>{str(X_test[1]):.10}</td>
+                        <td>{y_test[1]}</td>
+                        <td>{user_guesses[1]}</td>
+                        <td>{float(int(ML_pred[1]))}</td>
+                     <tr>
+                      <tr>
+                        <td>{str(X_test[2]):.10}</td>
+                        <td>{y_test[2]}</td>
+                        <td>{user_guesses[2]}</td>
+                        <td>{float(int(ML_pred[2]))}</td>
+                     <tr>
+                      <tr>
+                        <td>{str(X_test[3]):.10}</td>
+                        <td>{y_test[3]}</td>
+                        <td>{user_guesses[3]}</td>
+                       <td>{float(int(ML_pred[3]))}</td>
+                    
+                     <tr>
+                      <tr>
+                        <td>{str(X_test[4]):.10}</td>
+                        <td>{y_test[4]}</td>
+                        <td>{user_guesses[4]}</td>
+                        <td>{float(int(ML_pred[4]))}</td>
+                     <tr>
+                    
+                    </table>
+            </div>
+            
+            
+            <form action="/guess" method = "POST">
+    <p><input type = "submit" value = "Nice work, think you can do it again?" /></p>
     </form>
-        <form action="/" method = "POST">
-<p><input type = "submit" value = "Return to Homepage" /></p>
-</form>
-            </body>
-        </html>
-        '''
+            <form action="/" method = "POST">
+    <p><input type = "submit" value = "Return to Homepage" /></p>
+    </form>
+    
+    <script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {{
+  coll[i].addEventListener("click", function() {{
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {{
+      content.style.display = "none";
+    }} else {{
+      content.style.display = "block";
+    }}
+  }});
+}}
+</script>
+    
+        </body>
+    </html>
+    '''
         
-X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales") 
+#X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales") 
 #app.run(debug=False)
 
 if __name__ == '__main__':
