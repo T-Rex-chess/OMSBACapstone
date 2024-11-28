@@ -3,16 +3,16 @@
 # Imports -----------------------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.metrics import mean_absolute_percentage_error
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.pipeline import make_pipeline
+#from sklearn.pipeline import make_pipeline
 
-from datetime import datetime
-from datetime import timedelta
+#from datetime import datetime
+#from datetime import timedelta
 #Xtrapolate Functions
 import random
 
@@ -82,7 +82,7 @@ babynames = babynames.T
 bn = 'Anna'
 
 
-print(bn)
+
 # BaseManager Parent Class -----------------------------------------------------------------------------------------------
 # BaseManager class: Parent class.
 class BaseManager:
@@ -210,7 +210,7 @@ class DataLoader(BaseManager):
         else:
             cols_to_drop = []
             for i in list(self.data):
-                print(i)
+                
                 if i in target_x_columns:
                     inx = 1
                 else:
@@ -628,10 +628,10 @@ def bridge(data_set, cull = False):
     
     if data_set == "Baby":
         
-        print('babe')
+        #print('babe')
         data_loader = DataLoader(babynames)
         
-        print('dl')
+        #print('dl')
         
         #data_loader.handle_missing_values()
         
@@ -765,7 +765,7 @@ def start_page():
     </p>
     
     <p> The Baby Names Data comes from the US Social Security Administration, and is available here: 
-            <a href="https://catalog.data.gov/dataset/baby-names-from-social-security-card-applications-national-datas" style="color: {theme['accent_color']}; text-decoration: none;">Baby Names Dataset</a>
+            <a href="https://catalog.data.gov/dataset/baby-names-from-social-security-card-applications-national-data" style="color: {theme['accent_color']}; text-decoration: none;">Baby Names Dataset</a>
     </p>
     
     <hr> </hr>
@@ -835,7 +835,7 @@ def guess():
     if request.method == 'POST':
         # Creating Plot Figure
         
-        print('baby')
+        #print('baby')
         
         X_train, X_test, y_train, y_test,  Plot_Title = bridge("Baby", True)
         
@@ -874,7 +874,7 @@ def guess():
     		<head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    			<script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.4.3.min.js"></script>
+    			<script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
     			<title>Bokeh Charts</title>
                 <style>
                     body {{
@@ -1049,7 +1049,7 @@ def display():
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.4.3.min.js"></script>
+                <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
                 <title>Bokeh Charts 2</title>
                 <style>
                     body {{
@@ -1205,7 +1205,7 @@ def display():
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.4.3.min.js"></script>
+                <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
                 <title>Bokeh Charts 2</title>
                 <style>
                     body {{
