@@ -682,6 +682,7 @@ def bridge(data_set, cull = False):
 @app.route('/', methods = ['POST', 'GET'])
 def start_page():
     #return render_template('start_page.html')
+    image_url = 'https://raw.githubusercontent.com/T-Rex-chess/OMSBACapstone/6b4820a52d9294d1ce40371d82244a68d357b879/pics/Xtrapolate.jpg'
     return f'''
     <html lang="en">
     <head>
@@ -752,7 +753,8 @@ def start_page():
     </head>
     
     
-    <body>      
+    <body> 
+    <img src="{image_url}" alt="Xtrapolate Logo">
     <h1>Welcome to Xtrapolate!</h1>
     <h2>A Data Science Game</h2>
     <h3>Created by: Thomas Taylor, Jomaica Lei, Andy Turner</h3>
@@ -760,7 +762,7 @@ def start_page():
     <h2>Think you can beat the Machine? </h2>
     <p> In this game, you are given a graph of past values from various datasets and asked to predict the next 5 datapoints.  </p>
     <p> Watch out, because a machine learning model will also be trying to guess. </p>
-    <p> The sales dataset is sourced from Kaggle, and is available here: 
+    <p> The Sales Dataset is sourced from Kaggle, and is available here: 
             <a href="https://www.kaggle.com/datasets/kyanyoga/sample-sales-data" style="color: {theme['accent_color']}; text-decoration: none;">Sales Dataset</a>
     </p>
     
