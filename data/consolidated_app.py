@@ -20,7 +20,7 @@ from flask import Flask
 from flask import Flask, render_template, request
 from bokeh.embed import components
 from bokeh.plotting import figure, show
-from bokeh.models import BoxAnnotation
+from bokeh.models import BoxAnnotation, NumeralTickFormatter
 # from xtrapolate_functions import scoring, auto_reg_lin
 from bokeh.models import HoverTool
 
@@ -400,6 +400,10 @@ class ModelManager:
         mse = mean_squared_error(y_true, y_pred)
         r2 = r2_score(y_true, y_pred)
         mape = mean_absolute_percentage_error(y_true, y_pred)
+        if mape > 100:
+            mape = 100
+        else:
+            mape
         return mse, r2, mape
 
 
@@ -461,7 +465,13 @@ class ModelManager:
 
     def mape(self, y_true, y_pred): 
         y_true, y_pred = np.array(y_true), np.array(y_pred)
-        return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+        mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+        if mape > 100:
+            mape = 100
+        else:
+            mape
+        return mape
+
 
 # How to Use the ModelManager Class ----------------------
 # Create an instance of the class
@@ -888,6 +898,7 @@ def guess():
         #for changing chart background color: , background_fill_color=theme['chart_background']
         p.xaxis.axis_label = "Calendar Date"
         p.yaxis.axis_label = "Sum of Vehicle Sales"
+        p.yaxis[0].formatter = NumeralTickFormatter(format="0,0")
         # p.add_tools(HoverTool())
         # Defining Plot to be a Scatter Plot
         p.scatter( 	[i for i in X_train],
@@ -1035,6 +1046,7 @@ def display():
         p = figure(height=350, x_axis_type='datetime', sizing_mode="stretch_width")
         p.xaxis.axis_label = "Calendar Date"
         p.yaxis.axis_label = "Sum of Vehicle Sales"
+        p.yaxis[0].formatter = NumeralTickFormatter(format="0,0")
         # p.add_tools(HoverTool())
 
         # Defining Plot to be a Scatter Plot
@@ -1081,7 +1093,7 @@ def display():
         
         sv = 0
         
-        if user_mape <= regr_mape: 
+        if user_mape < regr_mape: 
             return  f'''
         <html lang="en">
             <head>
