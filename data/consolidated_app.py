@@ -27,7 +27,7 @@ from bokeh.models import HoverTool
 
 # Flask constructor ------------------------------------------------------------------------------------------------------
 app = Flask(__name__)
-
+counter = 0
 
 # Arrays -----------------------------------------------------------------------------------------------------------------
 # Predefined dataset of topics
@@ -681,6 +681,7 @@ Plot_Title = 'Dummy Data'
 
 '''
 
+
 theme = {
     "background": "#141A2D",
     "text_color": "#FFFFFF",
@@ -698,7 +699,7 @@ def bridge(data_set, cull = False):
 
     # this is essentialy hard coded for now but I think making different paths for each dataset based on the collums we actually use makes sense, can be altered later.
     if data_set == "Sales":
-        
+
         data_loader = DataLoader(sales_data)
         
         # add filter productline !!!
@@ -724,7 +725,6 @@ def bridge(data_set, cull = False):
         y_train = y_train.to_numpy()
         y_test = y_test.to_numpy()
         Plot_Title = "Sales by Date"
-        
         return  X_train, X_test, y_train, y_test,  Plot_Title
 
 
@@ -876,20 +876,16 @@ for (i = 0; i < coll.length; i++) {{
 # NEED TO FEED AN ARRAY INTO THE GUESS FUNCTION SO IT WORKS
 @app.route('/guess/', methods = ['POST', 'GET'])
 def guess():
-    
-
-    
+    global counter
+    counter += 1
     if request.method == 'GET':
         return f"The URL /guess is accessed directly. Try going to '/form' to submit form"
     if request.method == 'POST':
-        # Creating Plot Figure
         
-
+        # Creating Plot Figure
         
         X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales", True)
         
-
-
         start_shade = X_test[0]
         end_shade = X_test[4]
         box = BoxAnnotation(left=start_shade, right=end_shade, fill_alpha=0.4, fill_color='lightblue')
@@ -961,7 +957,7 @@ def guess():
             
             </head>
     		<body>
-    			<h1> Graph of Sum of Vehicle Sales ($) by Calendar Date </h1>
+    			<h1> Graph of Sum of Vehicle Sales ($) by Calendar Date: Round {str(counter)} </h1>
                 <h3> The below scatterplot displays the aggregate sum of the $ amount of vehicles sold on a given calendar date (Sales = Price * Quantity Sold) </h3>
     			{ div }
     			{ script }
@@ -986,12 +982,13 @@ def guess():
 
 @app.route('/display/', methods = ['POST', 'GET'])
 def display():
+    
     if request.method == 'GET':
         return f"The URL /data is accessed directly. Try going to '/form' to submit form"
     if request.method == 'POST':
-        
+
         global sv
-        
+        global counter
         sv = 1
         
         X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales", True)
@@ -1138,10 +1135,10 @@ def display():
                 
             </head>
             <body>
-                <h1> Here are the results of the predictions: </h1>
+                <h1> Here are the results of the predictions for this round: </h1>
                 { div }
                 { script }
-                <h2> You Won this Round! Good job predicting! </h2>
+                <h3> You Won this Round! Good job predicting! </h3>
                 <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>
                 <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
                 <form action="/guess" method = "POST">
