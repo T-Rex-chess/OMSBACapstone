@@ -893,7 +893,7 @@ def guess():
         p.scatter( 	[i for i in X_train],
     		[j for j in y_train],
             size=20,
-            color="blue",
+            color="black",
             alpha=0.5
         )
         #p.legend.location = 'top_left'
@@ -920,7 +920,7 @@ def guess():
                         font-family: 'Segoe UI', sans-serif;
                         margin: 0;
                         padding: 20px;
-                        text-align: center;
+                        text-align: left;
                     }}
                     h1, h2, h3, p {{
                         color: {theme['text_color']};
@@ -951,7 +951,7 @@ def guess():
             </head>
     		<body>
     			<h1> Graph of Sum of Vehicle Sales ($) by Calendar Date </h1>
-                <h2> The below scatterplot displays the aggregate sum of the $ amount of vehicles sold on a given calendar date (Sales = Price * Quantity Sold) </h2>
+                <h3> The below scatterplot displays the aggregate sum of the $ amount of vehicles sold on a given calendar date (Sales = Price * Quantity Sold) </h3>
     			{ div }
     			{ script }
 
@@ -1042,7 +1042,7 @@ def display():
             [i for i in X_train],
             [j for j in y_train],
             size=20,
-            color="blue",
+            color="black",
             alpha=0.5,
             legend_label = "Historical Actuals"
         )
@@ -1051,7 +1051,7 @@ def display():
             [i for i in X_test],
             [j for j in y_test],
             size=20,
-            color="green",
+            color="purple",
             alpha=0.5,
             legend_label = 'Actual Values (from Prediction Dates)'
         )
@@ -1060,7 +1060,7 @@ def display():
             [i for i in X_test],
             [j for j in user_guesses],
             size=20,
-            color="orange",
+            color="teal",
             alpha=0.5,
             legend_label = "Player Predicted value"
         )
@@ -1069,7 +1069,7 @@ def display():
             [i for i in X_test],
             [j for j in ML_pred],
             size=20,
-            color="red",
+            color="blue",
             alpha=0.5,
             legend_label = "ML Predicted value"
         )
@@ -1096,7 +1096,7 @@ def display():
                         font-family: 'Segoe UI', sans-serif;
                         margin: 0;
                         padding: 20px;
-                        text-align: center;
+                        text-align: left;
                     }}
                     h1, h2, h3, p {{
                         color: {theme['text_color']};
@@ -1133,7 +1133,7 @@ def display():
                 <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>
                 <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
                 <form action="/guess" method = "POST">
-        <p><input type = "submit" value = "Nice work, think you can do it again?" /></p>
+        <p><input type = "submit" value = "Play Again" /></p>
         </form>
                 <form action="/" method = "POST">
         <p><input type = "submit" value = "Return to Homepage" /></p>
@@ -1156,7 +1156,7 @@ def display():
                         font-family: 'Segoe UI', sans-serif;
                         margin: 0;
                         padding: 20px;
-                        text-align: center;
+                        text-align: left;
                     }}
                     h1, h2, h3, p {{
                         color: {theme['text_color']};
@@ -1193,7 +1193,7 @@ def display():
             <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>                    
             <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
         <form action="/guess" method = "POST">
-<p><input type = "submit" value = "Play again? Think you can beat the machine?" /></p>
+<p><input type = "submit" value = "Play Again" /></p>
     </form>
         <form action="/" method = "POST">
 <p><input type = "submit" value = "Return to Homepage" /></p>
