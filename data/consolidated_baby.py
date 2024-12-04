@@ -891,7 +891,7 @@ def guess():
             p.scatter( 	[i for i in X_train],
         		[j for j in y_train],
                 size=20,
-                color="blue",
+                color="black",
                 alpha=0.5
             )
             
@@ -1172,7 +1172,7 @@ def display():
                 [i for i in X_train],
                 [j for j in y_train],
                 size=20,
-                color="blue",
+                color="black",
                 alpha=0.5,
                 legend_label = "Historical Actuals"
             )
@@ -1181,7 +1181,7 @@ def display():
                 [i for i in X_test],
                 [j for j in y_test],
                 size=20,
-                color="green",
+                color="purple",
                 alpha=0.5,
                 legend_label = 'Actual Values (from Prediction Dates)'
             )
@@ -1190,7 +1190,7 @@ def display():
                 [i for i in X_test],
                 [j for j in user_guesses],
                 size=20,
-                color="orange",
+                color="teal",
                 alpha=0.5,
                 legend_label = "Player Predicted value"
             )
@@ -1199,7 +1199,7 @@ def display():
                 [i for i in X_test],
                 [j for j in ML_pred],
                 size=20,
-                color="red",
+                color="blue",
                 alpha=0.5,
                 legend_label = "ML Predicted value"
             )
@@ -1282,6 +1282,7 @@ def display():
                         padding: 0 500px;
                         display: none;
                         overflow: hidden;
+                        text-align: center;
                         background-color: {theme['background']};
                       }}
                         table, th, td {{
