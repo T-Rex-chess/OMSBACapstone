@@ -21,14 +21,26 @@ from flask import Flask
 from flask import Flask, render_template, request
 from bokeh.embed import components
 from bokeh.plotting import figure, show
-from bokeh.models import BoxAnnotation
+from bokeh.models import BoxAnnotation, NumeralTickFormatter
 # from xtrapolate_functions import scoring, auto_reg_lin
 from bokeh.models import HoverTool
 
 
 # Flask constructor ------------------------------------------------------------------------------------------------------
+# Flask constructor ------------------------------------------------------------------------------------------------------
 app = Flask(__name__)
+counter = 0
 
+selected_data_set = 'random'
+'''
+</form>
+  
+  <h4> Ready to Play? </h4>
+  <p> If you are ready to play, click the button below! </p>
+  <form action="/guess" method = "POST">
+  <p><input type = "submit" value = "Start game" /></p>
+  </form>
+'''
 
 # Arrays -----------------------------------------------------------------------------------------------------------------
 # Predefined dataset of topics
@@ -228,6 +240,7 @@ class DataLoader(BaseManager):
         global bn
         global start
         
+        global sv
 
         if sv == 0:
             start = random.randint(1880, 2024 - n)
@@ -259,7 +272,7 @@ class DataLoader(BaseManager):
         
         #x = list(map(int, x))
     
-        print(x)
+        
         
         y_train = df[0:test_value]
         X_train = x[0:test_value]
@@ -273,6 +286,7 @@ class DataLoader(BaseManager):
     
     def ordered_split_data(self, target_y_column, target_x_columns = None, test_value = -5, cull = False, n = 35):
         global start
+        global sv
         od = self.data
 
         if target_x_columns == None:
@@ -525,26 +539,20 @@ class ModelManager:
         
         Xt_poly = poly.fit_transform(x_t)
         
+        
+        
         return self.model.predict(Xt_poly)
-        '''
-        Example usage polynomial_model:
-        model = create_polynomial_model(2)
-        model.fit(X, y)
-
-        # Predict values
-        y_pred = model.predict(X)
-        print(y_pred)
-        '''
+    
 
     def mape(self, y_true, y_pred): 
         y_true, y_pred = np.array(y_true), np.array(y_pred)
         
-        mape = np.mean(np.abs((y_true - y_pred) / y_true+.00000001)) * 100
+        mape = np.mean(np.abs((y_true - y_pred) / (y_true+.000000001))) * 100
         
         if mape == np.inf:
             mape = 100
         
-        elif mape == np.nan:
+        elif mape is np.nan:
             mape = 0
             
         elif mape > 100: 
@@ -629,13 +637,13 @@ def bridge(data_set, cull = False):
     if data_set == "Baby":
         
         #print('babe')
-        data_loader = DataLoader(babynames)
+        data_loader_b = DataLoader(babynames)
         
         #print('dl')
         
         #data_loader.handle_missing_values()
         
-        X_train, X_test, y_train, y_test = data_loader.get_baby()
+        X_train, X_test, y_train, y_test = data_loader_b.get_baby()
         
         Plot_Title = f"Baby's born in America each year named {bn}"
         
@@ -753,8 +761,8 @@ def start_page():
     </head>
     
     
-    <body> 
-    <img src="{image_url}" alt="Xtrapolate Logo">
+    <body>
+    <img src="{image_url}" alt="Xtrapolate Logo">        
     <h1>Welcome to Xtrapolate!</h1>
     <h2>A Data Science Game</h2>
     <h3>Created by: Thomas Taylor, Jomaica Lei, Andy Turner</h3>
@@ -762,7 +770,7 @@ def start_page():
     <h2>Think you can beat the Machine? </h2>
     <p> In this game, you are given a graph of past values from various datasets and asked to predict the next 5 datapoints.  </p>
     <p> Watch out, because a machine learning model will also be trying to guess. </p>
-    <p> The Sales Dataset is sourced from Kaggle, and is available here: 
+    <p> The sales dataset is sourced from Kaggle, and is available here: 
             <a href="https://www.kaggle.com/datasets/kyanyoga/sample-sales-data" style="color: {theme['accent_color']}; text-decoration: none;">Sales Dataset</a>
     </p>
     
@@ -794,11 +802,19 @@ def start_page():
     </div>
 
     <hr> </hr>
-    <h4> Ready to Play? </h4>
-    <p> If you are ready to play, click the button below! </p>
+    
     <form action="/guess" method = "POST">
-    <p><input type = "submit" value = "Start game" /></p>
-    </form>
+  <label for="dta">Choose a dataset and go:</label>
+  <select name="dta" id="dta" >
+    <option value="random">Random</option>
+    <option value="Baby">Baby Names</option>
+    <option value="Sales">Sales</option>
+
+  </select>
+
+  <input type = "submit" value = "Confirm">
+  </form>
+  
     
     <script>
 var coll = document.getElementsByClassName("collapsible");
@@ -839,39 +855,177 @@ def guess():
         
         #print('baby')
         
-        X_train, X_test, y_train, y_test,  Plot_Title = bridge("Baby", True)
         
-
-
-        start_shade = X_test[0]
-        end_shade = X_test[4]
-        box = BoxAnnotation(left=start_shade, right=end_shade, fill_alpha=0.4, fill_color='lightblue')
         
-        p = figure(height=350, sizing_mode="stretch_width")
-        #for changing chart background color: , background_fill_color=theme['chart_background']
-        p.xaxis.axis_label = "Year"
-        p.yaxis.axis_label = f"Number of Babies named {bn}"
-        #p.add_tools(HoverTool())
-        # Defining Plot to be a Scatter Plot
-        p.scatter( 	[i for i in X_train],
-    		[j for j in y_train],
-            size=20,
-            color="blue",
-            alpha=0.5
-        )
         
-
-        #p.legend.location = 'top_left'
-        p.add_layout(box)
+        global selected_data_set
         
-        # Get Chart Components
-        script, div = components(p)
-    
+        selected_data_set = request.form.get("dta")
+        
+        if selected_data_set == 'random':
+            
+            selected_data_set = random.choice(['Baby', 'Sales'])
+        
+        
+        global counter
         global sv
+        if sv == 0:
+            counter += 1
         
-        sv = 1
-        # Return the components to the HTML template
-        return f'''
+        
+        
+        if selected_data_set == 'Baby':
+            
+            X_train, X_test, y_train, y_test,  Plot_Title = bridge(selected_data_set, True)
+
+            start_shade = X_test[0]
+            end_shade = X_test[4]
+            box = BoxAnnotation(left=start_shade, right=end_shade, fill_alpha=0.4, fill_color='lightblue')
+            
+            p = figure(height=350, sizing_mode="stretch_width")
+            #for changing chart background color: , background_fill_color=theme['chart_background']
+            p.xaxis.axis_label = "Year"
+            p.yaxis.axis_label = f"Number of Babies named {bn}"
+            #p.add_tools(HoverTool())
+            # Defining Plot to be a Scatter Plot
+            p.scatter( 	[i for i in X_train],
+        		[j for j in y_train],
+                size=20,
+                color="blue",
+                alpha=0.5
+            )
+            
+    
+            #p.legend.location = 'top_left'
+            p.add_layout(box)
+            
+            # Get Chart Components
+            script, div = components(p)
+        
+            
+            
+            sv = 1
+            # Return the components to the HTML template
+            return f'''
+        	<html lang="en">
+        		<head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        			<script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
+        			<title>Bokeh Charts</title>
+                    <style>
+                        body {{
+                            background-color: {theme['background']};
+                            color: {theme['text_color']};
+                            font-family: 'Segoe UI', sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            text-align: center;
+                        }}
+                        h1, h2, h3, p {{
+                            color: {theme['text_color']};
+                        }}
+                        .btn-custom {{
+                            background-color: {theme['button_bg']};
+                            color: {theme['text_color']};
+                            border: none;
+                            padding: 10px 15px;
+                            border-radius: 5px;
+                            font-size: 16px;
+                            cursor: pointer;
+                            transition: background-color 0.3s ease;
+                        }}
+                        .btn-custom:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
+                        input {{
+                            background-color: {theme['chart_background']};
+                            color: {theme['text_color']};
+                            border: 1px solid {theme['neutral']};
+                            border-radius: 4px;
+                            padding: 5px;
+                            margin: 5px;
+                        }}
+                        
+                        
+                        section.inputSection {{
+                            border-style: solid;
+                            /* background: linear-gradient(60deg, {theme['background']}, {theme['button_hover']}); */
+                            border-color: {theme['button_bg']};
+                            margin: 10px;
+                            text-align: center;
+                        }}
+                                                           
+                       .guessstyle {{
+        border-style: solid;
+        background: linear-gradient(60deg,{theme['background']}, {theme['button_hover']});
+        max-width: fit-content;
+        border-color: black;
+        position: relative;
+        padding: 10;
+        left: 42%;
+    }}
+                            .bk-Figure {{
+        max-width: 60%;
+        left: 20%;
+    }}
+                    </style>       
+                
+                </head>
+                
+        		<body>
+        			<h1> {Plot_Title} </h1>
+                    
+        			{ div }
+        			{ script }
+    
+                    <h3> Round {str(counter)}: Submit a prediction for the number of babies born named {bn} in each of the below 5 years. This will show up in the light blue shaded region. </h3>
+                    
+                    <section class="inputSection">
+                    
+                    <p> After you submit your guesses, a machine learning model will also make some predictions. Can you beat the machine by predicting values more accurately? Good luck! </p>
+                    
+                    <form action="/display" method = "POST" class = "guessstyle">
+            <p> {bn}'s born in {str(X_test[0]):.10} <input type = "number" step = "any" name = "g1" value = 0 required /></p>
+            <p> {bn}'s born in {str(X_test[1]):.10} <input type = "number" step = "any" name = "g2" value = 0  required /></p>
+            <p> {bn}'s born in {str(X_test[2]):.10} <input type = "number" step = "any" name = "g3" value = 0 required /></p>
+            <p> {bn}'s born in {str(X_test[3]):.10} <input type = "number" step = "any" name = "g4" value = 0 required /></p>
+            <p> {bn}'s born in {str(X_test[4]):.10} <input type = "number" step = "any" name = "g5" value = 0 required /></p>
+            <p><input type = "submit" value = "Submit" /></p>
+            </form>
+                    </section>
+        		</body>
+        	</html> '''
+        if selected_data_set == 'Sales':
+            X_train, X_test, y_train, y_test,  Plot_Title = bridge(selected_data_set, True)
+            start_shade = X_test[0]
+            end_shade = X_test[4]
+            box = BoxAnnotation(left=start_shade, right=end_shade, fill_alpha=0.4, fill_color='lightblue')
+            
+            p = figure(height=350, x_axis_type='datetime', sizing_mode="stretch_width")
+            #for changing chart background color: , background_fill_color=theme['chart_background']
+            p.xaxis.axis_label = "Calendar Date"
+            p.yaxis.axis_label = "Sum of Vehicle Sales"
+            p.yaxis[0].formatter = NumeralTickFormatter(format="0,0")
+            # p.add_tools(HoverTool())
+            # Defining Plot to be a Scatter Plot
+            p.scatter( 	[i for i in X_train],
+        		[j for j in y_train],
+                size=20,
+                color="black",
+                alpha=0.5
+            )
+            #p.legend.location = 'top_left'
+            p.add_layout(box)
+            
+            # Get Chart Components
+            script, div = components(p)
+        
+
+            
+            sv = 1
+            # Return the components to the HTML template
+            return f'''
     	<html lang="en">
     		<head>
                 <meta charset="UTF-8">
@@ -885,7 +1039,7 @@ def guess():
                         font-family: 'Segoe UI', sans-serif;
                         margin: 0;
                         padding: 20px;
-                        text-align: center;
+                        text-align: left;
                     }}
                     h1, h2, h3, p {{
                         color: {theme['text_color']};
@@ -911,30 +1065,33 @@ def guess():
                         padding: 5px;
                         margin: 5px;
                     }}
+                    
+                    
                 </style>       
             
             </head>
     		<body>
-    			<h1> {Plot_Title} </h1>
-                
+    			<h1> Graph of Sum of Vehicle Sales ($) by Calendar Date: Round {str(counter)} </h1>
+                <h3> The below scatterplot displays the aggregate sum of the $ amount of vehicles sold on a given calendar date (Sales = Price * Quantity Sold) </h3>
     			{ div }
     			{ script }
 
-                <h3> Submit a prediction for the number of babies born named {bn} in each of the below 5 years. This will show up in the light blue shaded region. </h3>
+                <h3> Submit a prediction for the $ amount of vehicle sales for each date below. This will show up in the light blue shaded region. </h3>
                 <p> After you submit your guesses, a machine learning model will also make some predictions. Can you beat the machine by predicting values more accurately? Good luck! </p>
                 
                 <form action="/display" method = "POST">
-        <p> {bn}'s born in {str(X_test[0]):.10} <input type = "number" step = "any" name = "g1" value = 0 required /></p>
-        <p> {bn}'s born in {str(X_test[1]):.10} <input type = "number" step = "any" name = "g2" value = 0  required /></p>
-        <p> {bn}'s born in {str(X_test[2]):.10} <input type = "number" step = "any" name = "g3" value = 0 required /></p>
-        <p> {bn}'s born in {str(X_test[3]):.10} <input type = "number" step = "any" name = "g4" value = 0 required /></p>
-        <p> {bn}'s born in {str(X_test[4]):.10} <input type = "number" step = "any" name = "g5" value = 0 required /></p>
+        <p> Vehicle Sales on {str(X_test[0]):.10} <input type = "number" step = "any" name = "g1" value = 0 required /></p>
+        <p> Vehicle Sales on {str(X_test[1]):.10} <input type = "number" step = "any" name = "g2" value = 0  required /></p>
+        <p> Vehicle Sales on {str(X_test[2]):.10} <input type = "number" step = "any" name = "g3" value = 0 required /></p>
+        <p> Vehicle Sales on {str(X_test[3]):.10} <input type = "number" step = "any" name = "g4" value = 0 required /></p>
+        <p> Vehicle Sales on {str(X_test[4]):.10} <input type = "number" step = "any" name = "g5" value = 0 required /></p>
         <p><input type = "submit" value = "Submit" /></p>
         </form>
                 
     		</body>
     	</html>
     	'''
+    	
 
 
 
@@ -944,34 +1101,17 @@ def display():
         return f"The URL /data is accessed directly. Try going to '/form' to submit form"
     if request.method == 'POST':
         
-        global sv
+        print('h')
         
+                
+        global selected_data_set
+        
+        global sv
+        global counter
         sv = 1
         
-        X_train, X_test, y_train, y_test,  Plot_Title = bridge("Baby")
-        
-        '''
-        train_days = []
-        test_days = []
-        for i in X_test:
-            delt = i - X_train[0]
-            d =  delt.astype('timedelta64[D]')
-            test_days.append(d / np.timedelta64(1, 'D'))
-        for i in X_train:
-            delt = i - X_train[0]
-            d =  delt.astype('timedelta64[D]')
-            train_days.append(d / np.timedelta64(1, 'D'))
-        '''
-        
-
-        # user guesses
-        user_guesses = []
-        user_guesses.append(float(request.form.get("g1")))
-        user_guesses.append(float(request.form.get("g2")))
-        user_guesses.append(float(request.form.get("g3")))
-        user_guesses.append(float(request.form.get("g4")))
-        user_guesses.append(float(request.form.get("g5")))
-        
+       
+        print(selected_data_set)
         #weights = np.ones(len(y_test))
         #ybar = (sum(y_train)+sum(y_test))/(len(y_train)+len(y_test))
         
@@ -980,197 +1120,397 @@ def display():
         #user_score = s.scoring(user_guesses, y_test, weights, ybar)
         
         #create instance of ModelManager()
-        regr = ModelManager()
-        
-        #ntercept, coefficients, ML_pred = regr.auto_reg_lin(X_train, y_train, X_test)
-        ML_pred  = regr.poly_fit_pred(2, X_train.reshape(-1, 1), y_train, X_test.reshape(-1, 1))
-        #gamecoefficients = regr.get_coefficients()
-        #intercepts = regr.get_intercept()
-        #ML_pred = regr.predict(X_test.reshape(-1, 1))
-        #ML_Score = s.scoring(ML_pred, y_test, weights, ybar)
+        if selected_data_set == 'Baby':
+            
+            X_train, X_test, y_train, y_test,  Plot_Title = bridge(selected_data_set)
+            
+            '''
+            train_days = []
+            test_days = []
+            for i in X_test:
+                delt = i - X_train[0]
+                d =  delt.astype('timedelta64[D]')
+                test_days.append(d / np.timedelta64(1, 'D'))
+            for i in X_train:
+                delt = i - X_train[0]
+                d =  delt.astype('timedelta64[D]')
+                train_days.append(d / np.timedelta64(1, 'D'))
+            '''
+            
 
-        #get user MAPE:
-        user_mape = round(regr.mape(y_test, user_guesses),2)
-
-        #get ML MAPE:
-        regr_mape = round(regr.mape(y_test, ML_pred),2)
-
-        #create plot
-        p = figure(height=350,  sizing_mode="stretch_width")
-        p.xaxis.axis_label = "Year"
-        p.yaxis.axis_label = f"Number of Babies named {bn}"
-        #p.add_tools(HoverTool())
-
-        # Defining Plot to be a Scatter Plot
-        p.scatter(
-            [i for i in X_train],
-            [j for j in y_train],
-            size=20,
-            color="blue",
-            alpha=0.5,
-            legend_label = "Historical Actuals"
-        )
-        
-        p.scatter(
-            [i for i in X_test],
-            [j for j in y_test],
-            size=20,
-            color="green",
-            alpha=0.5,
-            legend_label = 'Actual Values (from Prediction Dates)'
-        )
-        
-        p.scatter(
-            [i for i in X_test],
-            [j for j in user_guesses],
-            size=20,
-            color="orange",
-            alpha=0.5,
-            legend_label = "Player Predicted value"
-        )
-        
-        p.scatter(
-            [i for i in X_test],
-            [j for j in ML_pred],
-            size=20,
-            color="red",
-            alpha=0.5,
-            legend_label = "ML Predicted value"
-        )
-        
-        p.legend.location = 'top_left'
-
-        # Get Chart Components
-        script, div = components(p)
-        
-        sv = 0
-        
-        if user_mape <= regr_mape: 
-            return  f'''
-        <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
-                <title>Bokeh Charts 2</title>
-                <style>
-                    body {{
+            # user guesses
+            user_guesses = []
+            user_guesses.append(float(request.form.get("g1")))
+            user_guesses.append(float(request.form.get("g2")))
+            user_guesses.append(float(request.form.get("g3")))
+            user_guesses.append(float(request.form.get("g4")))
+            user_guesses.append(float(request.form.get("g5")))
+            
+            regr = ModelManager()
+            
+            #ntercept, coefficients, ML_pred = regr.auto_reg_lin(X_train, y_train, X_test)
+            ML_pred  = regr.poly_fit_pred(2, X_train.reshape(-1, 1), y_train, X_test.reshape(-1, 1))
+            #gamecoefficients = regr.get_coefficients()
+            #intercepts = regr.get_intercept()
+            #ML_pred = regr.predict(X_test.reshape(-1, 1))
+            #ML_Score = s.scoring(ML_pred, y_test, weights, ybar)
+    
+            #get user MAPE:
+            user_mape = round(regr.mape(y_test, user_guesses),2)
+    
+            #get ML MAPE:
+            regr_mape = round(regr.mape(y_test, ML_pred),2)
+    
+            #create plot
+            p = figure(height=350,  sizing_mode="stretch_width")
+            p.xaxis.axis_label = "Year"
+            p.yaxis.axis_label = f"Number of Babies named {bn}"
+            #p.add_tools(HoverTool())
+    
+            # Defining Plot to be a Scatter Plot
+            p.scatter(
+                [i for i in X_train],
+                [j for j in y_train],
+                size=20,
+                color="blue",
+                alpha=0.5,
+                legend_label = "Historical Actuals"
+            )
+            
+            p.scatter(
+                [i for i in X_test],
+                [j for j in y_test],
+                size=20,
+                color="green",
+                alpha=0.5,
+                legend_label = 'Actual Values (from Prediction Dates)'
+            )
+            
+            p.scatter(
+                [i for i in X_test],
+                [j for j in user_guesses],
+                size=20,
+                color="orange",
+                alpha=0.5,
+                legend_label = "Player Predicted value"
+            )
+            
+            p.scatter(
+                [i for i in X_test],
+                [j for j in ML_pred],
+                size=20,
+                color="red",
+                alpha=0.5,
+                legend_label = "ML Predicted value"
+            )
+            
+            p.legend.location = 'top_left'
+    
+            # Get Chart Components
+            script, div = components(p)
+            
+            sv = 0
+            
+            if user_mape <= regr_mape: 
+                return  f'''
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
+                    <title>Bokeh Charts 2</title>
+                    <style>
+                        .bk-Figure {{
+                                max-width: 60%;
+                                left: 20%;
+                            }}
+                        body {{
+                            background-color: {theme['background']};
+                            color: {theme['text_color']};
+                            font-family: 'Segoe UI', sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            text-align: center;
+                        }}
+                        h1, h2, h3, p {{
+                            color: {theme['text_color']};
+                        }}
+                        .btn-custom {{
+                            background-color: {theme['button_bg']};
+                            color: {theme['text_color']};
+                            border: none;
+                            padding: 10px 15px;
+                            border-radius: 5px;
+                            font-size: 16px;
+                            cursor: pointer;
+                            transition: background-color 0.3s ease;
+                        }}
+                        .btn-custom:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
+                        input {{
+                            background-color: {theme['chart_background']};
+                            color: {theme['text_color']};
+                            border: 1px solid {theme['neutral']};
+                            border-radius: 4px;
+                            padding: 5px;
+                            margin: 5px;
+                        }}
+                        
+    
+                        
+                        .collapsible {{
                         background-color: {theme['background']};
                         color: {theme['text_color']};
-                        font-family: 'Segoe UI', sans-serif;
-                        margin: 0;
-                        padding: 20px;
-                        text-align: center;
-                    }}
-                    h1, h2, h3, p {{
-                        color: {theme['text_color']};
-                    }}
-                    .btn-custom {{
-                        background-color: {theme['button_bg']};
-                        color: {theme['text_color']};
-                        border: none;
-                        padding: 10px 15px;
-                        border-radius: 5px;
-                        font-size: 16px;
                         cursor: pointer;
-                        transition: background-color 0.3s ease;
-                    }}
-                    .btn-custom:hover {{
-                        background-color: {theme['button_hover']};
-                    }}
-                    input {{
-                        background-color: {theme['chart_background']};
-                        color: {theme['text_color']};
+                        padding: 20px;
+                        width: 10%;
                         border: 1px solid {theme['neutral']};
                         border-radius: 4px;
-                        padding: 5px;
-                        margin: 5px;
+                        text-align: center;
+                        outline: none;
+                        font-size: 25px;
+                      }}
+                        
+                        .collapsible:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
+                        
+    
+                        
+                        .content {{
+                        padding: 0 500px;
+                        display: none;
+                        overflow: hidden;
+                        background-color: {theme['background']};
+                      }}
+                        table, th, td {{
+                      border: 2px solid red;
+                      border-collapse: collapse;
+                      text-align: center;
                     }}
+                    th, td {{
+                      padding: 10px;
+                    }}
+                        
+                    </style>     
+                    
+                </head>
+                <body>
+                    <h1> Here are the results of the predictions: </h1>
+                    { div }
+                    { script }
+                    <h2> You Won Round {str(counter)}! Good job predicting! </h2>
+                    <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>
+                    <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
                     
                     
-                    .collapsible {{
-                    background-color: {theme['background']};
-                    color: {theme['text_color']};
-                    cursor: pointer;
-                    padding: 20px;
-                    width: 100%;
-                    border: none;
-                    text-align: center;
-                    outline: none;
-                    font-size: 25px;
-                  }}
+                    <button type="button" class="collapsible"> Results Table </button>
+                    <div class="content">
+                        <table>
+                          <tr>
+                            <th>Year</th>
+                            <th>Actual Value</th>
+                            <th>User Prediction</th>
+                            <th>ML Prediction</th>
+                          </tr>
+                          <tr>
+                            <td>{str(X_test[0]):.10}</td>
+                            <td>{y_test[0]}</td>
+                            <td>{user_guesses[0]}</td>
+                            <td>{float(int(ML_pred[0]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[1]):.10}</td>
+                            <td>{y_test[1]}</td>
+                            <td>{user_guesses[1]}</td>
+                            <td>{float(int(ML_pred[1]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[2]):.10}</td>
+                            <td>{y_test[2]}</td>
+                            <td>{user_guesses[2]}</td>
+                            <td>{float(int(ML_pred[2]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[3]):.10}</td>
+                            <td>{y_test[3]}</td>
+                            <td>{user_guesses[3]}</td>
+                           <td>{float(int(ML_pred[3]))}</td>
+                        
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[4]):.10}</td>
+                            <td>{y_test[4]}</td>
+                            <td>{user_guesses[4]}</td>
+                            <td>{float(int(ML_pred[4]))}</td>
+                         <tr>
+                        
+                        </table>
+                    </div>
                     
-
                     
-                    .content {{
-                    padding: 0 500px;
-                    display: none;
-                    overflow: hidden;
-                    background-color: {theme['background']};
-                  }}
-                    table, th, td {{
-                  border: 2px solid red;
-                  border-collapse: collapse;
-                  text-align: center;
-                }}
-                th, td {{
-                  padding: 10px;
-                }}
+                    <form action="/guess" method = "POST">
+            <p><input type = "submit" value = "Nice work, think you can do it again?" /></p>
+            </form>
+                    <form action="/" method = "POST">
+            <p><input type = "submit" value = "Return to Homepage" /></p>
+            </form>
+            
+            <script>
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+    
+        for (i = 0; i < coll.length; i++) {{
+          coll[i].addEventListener("click", function() {{
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.display === "block") {{
+              content.style.display = "none";
+            }} else {{
+              content.style.display = "block";
+            }}
+          }});
+        }}
+        </script>
+            
+                </body>
+            </html>
+            '''
+            else:
+                return  f'''
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
+                    <title>Bokeh Charts 2</title>
+                    <style>
+                        .bk-Figure {{
+                            max-width: 60%;
+                            left: 20%;
+                        }}
+                        body {{
+                            background-color: {theme['background']};
+                            color: {theme['text_color']};
+                            font-family: 'Segoe UI', sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            text-align: center;
+                        }}
+                        h1, h2, h3, p {{
+                            color: {theme['text_color']};
+                        }}
+                        .btn-custom {{
+                            background-color: {theme['button_bg']};
+                            color: {theme['text_color']};
+                            border: none;
+                            padding: 10px 15px;
+                            border-radius: 5px;
+                            font-size: 16px;
+                            cursor: pointer;
+                            transition: background-color 0.3s ease;
+                        }}
+                        .btn-custom:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
+                        input {{
+                            background-color: {theme['chart_background']};
+                            color: {theme['text_color']};
+                            border: 1px solid {theme['neutral']};
+                            border-radius: 4px;
+                            padding: 5px;
+                            margin: 5px;
+                        }}
+                        
+                        
+                        .collapsible {{
+                        background-color: {theme['background']};
+                        color: {theme['text_color']};
+                        cursor: pointer;
+                        padding: 20px;
+                        width: 10%;
+                        border: 1px solid {theme['neutral']};
+                        border-radius: 4px;
+                        text-align: center;
+                        outline: none;
+                        font-size: 25px;
+                      }}
+                        
+                        .collapsible:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
+                        
+    
+    
+                        
+                        .content {{
+                        padding: 0 500px;
+                        display: none;
+                        overflow: hidden;
+                        background-color: {theme['background']};
+                      }}
+                        
+                        table, th, td {{
+                      border: 2px solid red;
+                      border-collapse: collapse;
+                    }}
+                    th, td {{
+                      padding: 10px;
+                    }}
+                        
+                    </style>       
                     
-                </style>     
-                
-            </head>
-            <body>
-                <h1> Here are the results of the predictions: </h1>
-                { div }
-                { script }
-                <h2> You Won this Round! Good job predicting! </h2>
-                <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>
+                </head>
+                <body>
+                    <h1> Here are the results of the predictions: </h1>
+                    { div }
+                    { script }
+                <h2> ML Wins Round {str(counter)}! Better luck next time. </h2>
+                <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>                    
                 <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
-                
-                
-                <button type="button" class="collapsible"> Results Table </button>
+            <button type="button" class="collapsible"> Results Table </button>
                 <div class="content">
-                    <table>
-                      <tr>
-                        <th>Year</th>
-                        <th>Actual Value</th>
-                        <th>User Prediction</th>
-                        <th>ML Prediction</th>
-                      </tr>
-                      <tr>
-                        <td>{str(X_test[0]):.10}</td>
-                        <td>{y_test[0]}</td>
-                        <td>{user_guesses[0]}</td>
-                        <td>{float(int(ML_pred[0]))}</td>
-                     <tr>
-                      <tr>
-                        <td>{str(X_test[1]):.10}</td>
-                        <td>{y_test[1]}</td>
-                        <td>{user_guesses[1]}</td>
-                        <td>{float(int(ML_pred[1]))}</td>
-                     <tr>
-                      <tr>
-                        <td>{str(X_test[2]):.10}</td>
-                        <td>{y_test[2]}</td>
-                        <td>{user_guesses[2]}</td>
-                        <td>{float(int(ML_pred[2]))}</td>
-                     <tr>
-                      <tr>
-                        <td>{str(X_test[3]):.10}</td>
-                        <td>{y_test[3]}</td>
-                        <td>{user_guesses[3]}</td>
-                       <td>{float(int(ML_pred[3]))}</td>
-                    
-                     <tr>
-                      <tr>
-                        <td>{str(X_test[4]):.10}</td>
-                        <td>{y_test[4]}</td>
-                        <td>{user_guesses[4]}</td>
-                        <td>{float(int(ML_pred[4]))}</td>
-                     <tr>
-                    
-                    </table>
+                        <table>
+                          <tr>
+                            <th>Year</th>
+                            <th>Actual Value</th>
+                            <th>User Prediction</th>
+                            <th>ML Prediction</th>
+                          </tr>
+                          <tr>
+                            <td>{str(X_test[0]):.10}</td>
+                            <td>{y_test[0]}</td>
+                            <td>{user_guesses[0]}</td>
+                            <td>{float(int(ML_pred[0]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[1]):.10}</td>
+                            <td>{y_test[1]}</td>
+                            <td>{user_guesses[1]}</td>
+                            <td>{float(int(ML_pred[1]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[2]):.10}</td>
+                            <td>{y_test[2]}</td>
+                            <td>{user_guesses[2]}</td>
+                            <td>{float(int(ML_pred[2]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[3]):.10}</td>
+                            <td>{y_test[3]}</td>
+                            <td>{user_guesses[3]}</td>
+                           <td>{float(int(ML_pred[3]))}</td>
+                        
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[4]):.10}</td>
+                            <td>{y_test[4]}</td>
+                            <td>{user_guesses[4]}</td>
+                            <td>{float(int(ML_pred[4]))}</td>
+                         <tr>
+                        
+                        </table>
                 </div>
                 
                 
@@ -1184,7 +1524,7 @@ def display():
         <script>
     var coll = document.getElementsByClassName("collapsible");
     var i;
-
+    
     for (i = 0; i < coll.length; i++) {{
       coll[i].addEventListener("click", function() {{
         this.classList.toggle("active");
@@ -1199,162 +1539,232 @@ def display():
     </script>
         
             </body>
-        </html>
-        '''
-        else:
-            return  f'''
-        <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
-                <title>Bokeh Charts 2</title>
-                <style>
-                    body {{
-                        background-color: {theme['background']};
-                        color: {theme['text_color']};
-                        font-family: 'Segoe UI', sans-serif;
-                        margin: 0;
-                        padding: 20px;
-                        text-align: center;
-                    }}
-                    h1, h2, h3, p {{
-                        color: {theme['text_color']};
-                    }}
-                    .btn-custom {{
-                        background-color: {theme['button_bg']};
-                        color: {theme['text_color']};
-                        border: none;
-                        padding: 10px 15px;
-                        border-radius: 5px;
-                        font-size: 16px;
-                        cursor: pointer;
-                        transition: background-color 0.3s ease;
-                    }}
-                    .btn-custom:hover {{
-                        background-color: {theme['button_hover']};
-                    }}
-                    input {{
-                        background-color: {theme['chart_background']};
-                        color: {theme['text_color']};
-                        border: 1px solid {theme['neutral']};
-                        border-radius: 4px;
-                        padding: 5px;
-                        margin: 5px;
-                    }}
-                    
-                    
-                    .collapsible {{
-                    background-color: {theme['background']};
-                    color: {theme['text_color']};
-                    cursor: pointer;
-                    padding: 20px;
-                    width: 100%;
-                    border: none;
-                    text-align: center;
-                    outline: none;
-                    font-size: 25px;
-                  }}
-                    
-
-                    
-                    .content {{
-                    padding: 0 500px;
-                    display: none;
-                    overflow: hidden;
-                    background-color: {theme['background']};
-                  }}
-                    
-                    table, th, td {{
-                  border: 2px solid red;
-                  border-collapse: collapse;
-                }}
-                th, td {{
-                  padding: 10px;
-                }}
-                    
-                </style>       
+        </html>'''
+        if selected_data_set == 'Sales':
+            
+            
+            X_train, X_test, y_train, y_test,  Plot_Title = bridge(selected_data_set)
+            
+            train_days = []
+            test_days = []
+            for i in X_test:
+               delt = i - X_train[0]
+               d =  delt.astype('timedelta64[D]')
+               test_days.append(d / np.timedelta64(1, 'D'))
+            for i in X_train:
+               delt = i - X_train[0]
+               d =  delt.astype('timedelta64[D]')
+               train_days.append(d / np.timedelta64(1, 'D'))
+           
+           
+            train_days = np.array(train_days)
+            test_days = np.array(test_days)
+           # user guesses
+            user_guesses = []
+            user_guesses.append(float(request.form.get("g1")))
+            user_guesses.append(float(request.form.get("g2")))
+            user_guesses.append(float(request.form.get("g3")))
+            user_guesses.append(float(request.form.get("g4")))
+            user_guesses.append(float(request.form.get("g5")))
+           
+            weights = np.ones(len(y_test))
+            ybar = (sum(y_train)+sum(y_test))/(len(y_train)+len(y_test))
+           
+            
+            
+           #create instance of ScoreManager()
+            s = ScoreManager()
+            user_score = s.scoring(user_guesses, y_test, weights, ybar)
                 
-            </head>
-            <body>
-                <h1> Here are the results of the predictions: </h1>
-                { div }
-                { script }
-            <h2> ML Wins this Round! Better luck next time. </h2>
-            <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>                    
-            <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
-        <button type="button" class="collapsible"> Results Table </button>
-            <div class="content">
-                    <table>
-                      <tr>
-                        <th>Year</th>
-                        <th>Actual Value</th>
-                        <th>User Prediction</th>
-                        <th>ML Prediction</th>
-                      </tr>
-                      <tr>
-                        <td>{str(X_test[0]):.10}</td>
-                        <td>{y_test[0]}</td>
-                        <td>{user_guesses[0]}</td>
-                        <td>{float(int(ML_pred[0]))}</td>
-                     <tr>
-                      <tr>
-                        <td>{str(X_test[1]):.10}</td>
-                        <td>{y_test[1]}</td>
-                        <td>{user_guesses[1]}</td>
-                        <td>{float(int(ML_pred[1]))}</td>
-                     <tr>
-                      <tr>
-                        <td>{str(X_test[2]):.10}</td>
-                        <td>{y_test[2]}</td>
-                        <td>{user_guesses[2]}</td>
-                        <td>{float(int(ML_pred[2]))}</td>
-                     <tr>
-                      <tr>
-                        <td>{str(X_test[3]):.10}</td>
-                        <td>{y_test[3]}</td>
-                        <td>{user_guesses[3]}</td>
-                       <td>{float(int(ML_pred[3]))}</td>
-                    
-                     <tr>
-                      <tr>
-                        <td>{str(X_test[4]):.10}</td>
-                        <td>{y_test[4]}</td>
-                        <td>{user_guesses[4]}</td>
-                        <td>{float(int(ML_pred[4]))}</td>
-                     <tr>
-                    
-                    </table>
-            </div>
+            regr = ModelManager()
+        
+            #ntercept, coefficients, ML_pred = regr.auto_reg_lin(X_train, y_train, X_test)
+            regr.fit(train_days.reshape(-1, 1), y_train)
+            gamecoefficients = regr.get_coefficients()
+            intercepts = regr.get_intercept()
+            ML_pred = regr.predict(test_days.reshape(-1, 1))
+            ML_Score = s.scoring(ML_pred, y_test, weights, ybar)
+    
+            #get user MAPE:
+            user_mape = round(regr.mape(y_test, user_guesses),2)
             
+            #get ML MAPE:
+            regr_mape = round(regr.mape(y_test, ML_pred),2)
+    
+            #create plot
+            p = figure(height=350, x_axis_type='datetime', sizing_mode="stretch_width")
+            p.xaxis.axis_label = "Calendar Date"
+            p.yaxis.axis_label = "Sum of Vehicle Sales"
+            p.yaxis[0].formatter = NumeralTickFormatter(format="0,0")
+            # p.add_tools(HoverTool())
+    
+            # Defining Plot to be a Scatter Plot
+            p.scatter(
+                [i for i in X_train],
+                [j for j in y_train],
+                size=20,
+                color="black",
+                alpha=0.5,
+                legend_label = "Historical Actuals"
+            )
             
+            p.scatter(
+                [i for i in X_test],
+                [j for j in y_test],
+                size=20,
+                color="purple",
+                alpha=0.5,
+                legend_label = 'Actual Values (from Prediction Dates)'
+            )
+            
+            p.scatter(
+                [i for i in X_test],
+                [j for j in user_guesses],
+                size=20,
+                color="teal",
+                alpha=0.5,
+                legend_label = "Player Predicted value"
+            )
+            
+            p.scatter(
+                [i for i in X_test],
+                [j for j in ML_pred],
+                size=20,
+                color="blue",
+                alpha=0.5,
+                legend_label = "ML Predicted value"
+            )
+            
+            p.legend.location = 'top_left'
+    
+            # Get Chart Components
+            script, div = components(p)
+            
+            sv = 0
+            
+           
+            
+            if user_mape < regr_mape:
+                
+                return  f'''
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
+                    <title>Bokeh Charts 2</title>
+                    <style>
+                        body {{
+                            background-color: {theme['background']};
+                            color: {theme['text_color']};
+                            font-family: 'Segoe UI', sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            text-align: left;
+                        }}
+                        h1, h2, h3, p {{
+                            color: {theme['text_color']};
+                        }}
+                        .btn-custom {{
+                            background-color: {theme['button_bg']};
+                            color: {theme['text_color']};
+                            border: none;
+                            padding: 10px 15px;
+                            border-radius: 5px;
+                            font-size: 16px;
+                            cursor: pointer;
+                            transition: background-color 0.3s ease;
+                        }}
+                        .btn-custom:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
+                        input {{
+                            background-color: {theme['chart_background']};
+                            color: {theme['text_color']};
+                            border: 1px solid {theme['neutral']};
+                            border-radius: 4px;
+                            padding: 5px;
+                            margin: 5px;
+                        }}
+                    </style>     
+                    
+                </head>
+                <body>
+                    <h1> Here are the results of the predictions for this round: </h1>
+                    { div }
+                    { script }
+                    <h3> You Won this Round! Good job predicting! </h3>
+                    <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>
+                    <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
+                    <form action="/guess" method = "POST">
+            <p><input type = "submit" value = "Play Again" /></p>
+            </form>
+                    <form action="/" method = "POST">
+            <p><input type = "submit" value = "Return to Homepage" /></p>
+            </form>
+                </body>
+            </html>
+            '''
+            else:
+                return  f'''
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
+                    <title>Bokeh Charts 2</title>
+                    <style>
+                        body {{
+                            background-color: {theme['background']};
+                            color: {theme['text_color']};
+                            font-family: 'Segoe UI', sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            text-align: left;
+                        }}
+                        h1, h2, h3, p {{
+                            color: {theme['text_color']};
+                        }}
+                        .btn-custom {{
+                            background-color: {theme['button_bg']};
+                            color: {theme['text_color']};
+                            border: none;
+                            padding: 10px 15px;
+                            border-radius: 5px;
+                            font-size: 16px;
+                            cursor: pointer;
+                            transition: background-color 0.3s ease;
+                        }}
+                        .btn-custom:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
+                        input {{
+                            background-color: {theme['chart_background']};
+                            color: {theme['text_color']};
+                            border: 1px solid {theme['neutral']};
+                            border-radius: 4px;
+                            padding: 5px;
+                            margin: 5px;
+                        }}
+                    </style>     
+                    
+                </head>
+                <body>
+                    <h1> Here are the results of the predictions: </h1>
+                    { div }
+                    { script }
+                <h2> ML Wins this Round! Better luck next time. </h2>
+                <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>                    
+                <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
             <form action="/guess" method = "POST">
-    <p><input type = "submit" value = "Nice work, think you can do it again?" /></p>
-    </form>
+    <p><input type = "submit" value = "Play Again" /></p>
+        </form>
             <form action="/" method = "POST">
     <p><input type = "submit" value = "Return to Homepage" /></p>
     </form>
-    
-    <script>
-var coll = document.getElementsByClassName("collapsible");
-var i;
-
-for (i = 0; i < coll.length; i++) {{
-  coll[i].addEventListener("click", function() {{
-    this.classList.toggle("active");
-    var content = this.nextElementSibling;
-    if (content.style.display === "block") {{
-      content.style.display = "none";
-    }} else {{
-      content.style.display = "block";
-    }}
-  }});
-}}
-</script>
-    
-        </body>
-    </html>
-    '''
+                </body>
+            </html>
+            '''
         
 #X_train, X_test, y_train, y_test,  Plot_Title = bridge("Sales") 
 #app.run(debug=False)
