@@ -293,12 +293,12 @@ class DataLoader(BaseManager):
             od = od.sort_values(target_y_column)
             if cull == True:
                 if sv == 0:
-                    start = random.randint(0, len(od.index - n-1))
+                    start = random.randint(0, len(od.index - (n+6)))
                     
-                df = od.iloc[start:start+n+1]
-                od = df
+
             else: 
                 n = n
+            od = od.iloc[start:start+n+1]
             X = od.data.drop(columns=[target_y_column])
         else:
             c = target_x_columns[0]
@@ -312,17 +312,18 @@ class DataLoader(BaseManager):
             if cull == True:
                 if sv == 0:
                     start = random.randint(0, len(od.index - (n+6)))
-                df = od.iloc[start:start+n+1]
-                od = df
+                
             else: 
                 n = n
+            od = od.iloc[start:start+n+1]
+            
             X = od.drop(columns=cols_to_drop)
         y = od[target_y_column]
         X_train = X.iloc[0:test_value]
         y_train = y.iloc[0:test_value]
         X_test = X.iloc[test_value:]
         y_test = y.iloc[test_value:]
-        #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
+       
         return X_train, X_test, y_train, y_test
     
 
@@ -1293,6 +1294,11 @@ def display():
                     th, td {{
                       padding: 10px;
                     }}
+                    
+                    .center {{
+                      margin-left: auto;
+                      margin-right: auto;
+                    }}
                         
                     </style>     
                     
@@ -1308,7 +1314,7 @@ def display():
                     
                     <button type="button" class="collapsible"> Results Table </button>
                     <div class="content">
-                        <table>
+                        <table class="center">
                           <tr>
                             <th>Year</th>
                             <th>Actual Value</th>
@@ -1542,6 +1548,8 @@ def display():
             </body>
         </html>'''
         if selected_data_set == 'Sales':
+            
+
             
             
             X_train, X_test, y_train, y_test,  Plot_Title = bridge(selected_data_set)
