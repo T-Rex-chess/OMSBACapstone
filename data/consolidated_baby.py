@@ -39,6 +39,8 @@ start = 0
 
 sv = 0
 
+last_ds = 'Baby'
+
 
 bn = 'Anna'
 
@@ -727,9 +729,17 @@ def guess():
         # Creating Plot Figure
         
         #print('baby')
+        
+        global last_ds
+        
         global selected_data_set
         
+        
+        
         selected_data_set = request.form.get("dta")
+        
+        if selected_data_set == None:
+            selected_data_set = last_ds
         
         if selected_data_set == 'random':
             
@@ -741,7 +751,15 @@ def guess():
         if sv == 0:
             counter += 1
         
+        
+        
+        print(f"sv: {sv}")
+        print(f"data set: {selected_data_set}")
+        print(f"counter: {counter}")
+        
         if selected_data_set == 'Baby':
+            
+            last_ds = 'Baby'
             
             X_train, X_test, y_train, y_test,  Plot_Title = bridge(selected_data_set, True)
 
@@ -862,6 +880,9 @@ def guess():
         		</body>
         	</html> '''
         if selected_data_set == 'Sales':
+            
+            last_ds = 'Sales'
+            
             X_train, X_test, y_train, y_test,  Plot_Title = bridge(selected_data_set, True)
             start_shade = X_test[0]
             end_shade = X_test[4]
@@ -2152,7 +2173,7 @@ def display():
                         </table>
                 </div>
            
-            <form action="/guess" method = "POST">
+            <form action="/guess/" method = "POST">
     <p><input type = "submit" value = "Play Again" /></p>
         </form>
             <form action="/" method = "POST">
