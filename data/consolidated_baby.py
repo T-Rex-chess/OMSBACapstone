@@ -523,7 +523,7 @@ def bridge(data_set, cull = False):
         
         X_train, X_test, y_train, y_test = data_loader_b.get_baby()
         
-        Plot_Title = f"Baby's born in America each year named {bn}"
+        Plot_Title = f"Babies born in America each year named {bn}"
         
         X_train = np.array(X_train)
         X_test = np.array(X_test)
@@ -713,11 +713,6 @@ for (i = 0; i < coll.length; i++) {{
   }});
 }}
 </script>
-    
-    
-   
-    
-    
     </body>
     </html>
     '''
@@ -726,19 +721,12 @@ for (i = 0; i < coll.length; i++) {{
 # NEED TO FEED AN ARRAY INTO THE GUESS FUNCTION SO IT WORKS
 @app.route('/guess/', methods = ['POST', 'GET'])
 def guess():
-    
-
-    
     if request.method == 'GET':
         return f"The URL /guess is accessed directly. Try going to '/form' to submit form"
     if request.method == 'POST':
         # Creating Plot Figure
         
         #print('baby')
-        
-        
-        
-        
         global selected_data_set
         
         selected_data_set = request.form.get("dta")
@@ -752,8 +740,6 @@ def guess():
         global sv
         if sv == 0:
             counter += 1
-        
-        
         
         if selected_data_set == 'Baby':
             
@@ -783,8 +769,6 @@ def guess():
             # Get Chart Components
             script, div = components(p)
         
-            
-            
             sv = 1
             # Return the components to the HTML template
             return f'''
@@ -867,11 +851,11 @@ def guess():
                     <p> After you submit your guesses, a machine learning model will also make some predictions. Can you beat the machine by predicting values more accurately? Good luck! </p>
                     
                     <form action="/display" method = "POST" class = "guessstyle">
-            <p> {bn}'s born in {str(X_test[0]):.10} <input type = "number" step = "any" name = "g1" value = 0 required /></p>
-            <p> {bn}'s born in {str(X_test[1]):.10} <input type = "number" step = "any" name = "g2" value = 0  required /></p>
-            <p> {bn}'s born in {str(X_test[2]):.10} <input type = "number" step = "any" name = "g3" value = 0 required /></p>
-            <p> {bn}'s born in {str(X_test[3]):.10} <input type = "number" step = "any" name = "g4" value = 0 required /></p>
-            <p> {bn}'s born in {str(X_test[4]):.10} <input type = "number" step = "any" name = "g5" value = 0 required /></p>
+            <p> Count of babies named {bn} born in {str(X_test[0]):.10} <input type = "number" step = "any" name = "g1" value = 0 required /></p>
+            <p> Count of babies named {bn} born in {str(X_test[1]):.10} <input type = "number" step = "any" name = "g2" value = 0  required /></p>
+            <p> Count of babies named {bn} born in {str(X_test[2]):.10} <input type = "number" step = "any" name = "g3" value = 0 required /></p>
+            <p> Count of babies named {bn} born in {str(X_test[3]):.10} <input type = "number" step = "any" name = "g4" value = 0 required /></p>
+            <p> Count of babies named {bn} born in {str(X_test[4]):.10} <input type = "number" step = "any" name = "g5" value = 0 required /></p>
             <p><input type = "submit" value = "Submit" /></p>
             </form>
                     </section>
@@ -1004,16 +988,12 @@ def display():
         return f"The URL /data is accessed directly. Try going to '/form' to submit form"
     if request.method == 'POST':
         
-        print('h')
-        
-                
+        print('h')   
         global selected_data_set
-        
         global sv
         global counter
         sv = 1
         
-       
         print(selected_data_set)
         #weights = np.ones(len(y_test))
         #ybar = (sum(y_train)+sum(y_test))/(len(y_train)+len(y_test))
@@ -1039,8 +1019,6 @@ def display():
                 d =  delt.astype('timedelta64[D]')
                 train_days.append(d / np.timedelta64(1, 'D'))
             '''
-            
-
             # user guesses
             user_guesses = []
             user_guesses.append(float(request.form.get("g1")))
@@ -1112,9 +1090,9 @@ def display():
             # Get Chart Components
             script, div = components(p)
             
-            sv = 0
-            
-            if user_mape <= regr_mape: 
+            sv = 0          
+            # Player wins -------------------------------------------------------------------------  
+            if user_mape < regr_mape: 
                 return  f'''
             <html lang="en">
                 <head>
@@ -1178,9 +1156,6 @@ def display():
                         .collapsible:hover {{
                             background-color: {theme['button_hover']};
                         }}
-                        
-    
-                        
                         .content {{
                         padding: 0 500px;
                         display: none;
@@ -1260,7 +1235,7 @@ def display():
                     
                     
                     <form action="/guess" method = "POST">
-            <p><input type = "submit" value = "Nice work, think you can do it again?" /></p>
+            <p><input type = "submit" value = "Play Again" /></p>
             </form>
                     <form action="/" method = "POST">
             <p><input type = "submit" value = "Return to Homepage" /></p>
@@ -1286,6 +1261,165 @@ def display():
                 </body>
             </html>
             '''
+            # Tied ----------------------------------------------------------------------------
+            elif user_mape == regr_mape:
+                return  f'''
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
+                    <title>Bokeh Charts 2</title>
+                    <style>
+                        .bk-Figure {{
+                            max-width: 60%;
+                            left: 20%;
+                        }}
+                        body {{
+                            background-color: {theme['background']};
+                            color: {theme['text_color']};
+                            font-family: 'Segoe UI', sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            text-align: center;
+                        }}
+                        h1, h2, h3, p {{
+                            color: {theme['text_color']};
+                        }}
+                        .btn-custom {{
+                            background-color: {theme['button_bg']};
+                            color: {theme['text_color']};
+                            border: none;
+                            padding: 10px 15px;
+                            border-radius: 5px;
+                            font-size: 16px;
+                            cursor: pointer;
+                            transition: background-color 0.3s ease;
+                        }}
+                        .btn-custom:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
+                        input {{
+                            background-color: {theme['chart_background']};
+                            color: {theme['text_color']};
+                            border: 1px solid {theme['neutral']};
+                            border-radius: 4px;
+                            padding: 5px;
+                            margin: 5px;
+                        }}
+                        .collapsible {{
+                        background-color: {theme['background']};
+                        color: {theme['text_color']};
+                        cursor: pointer;
+                        padding: 20px;
+                        width: 10%;
+                        border: 1px solid {theme['neutral']};
+                        border-radius: 4px;
+                        text-align: center;
+                        outline: none;
+                        font-size: 25px;
+                      }}
+                        
+                        .collapsible:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
+                        .content {{
+                        padding: 0 500px;
+                        display: none;
+                        overflow: hidden;
+                        background-color: {theme['background']};
+                      }}
+                        
+                        table, th, td {{
+                      border: 2px solid red;
+                      border-collapse: collapse;
+                    }}
+                    th, td {{
+                      padding: 10px;
+                    }}
+                        
+                    </style>       
+                    
+                </head>
+                <body>
+                    <h1> Here are the results of the predictions: </h1>
+                    { div }
+                    { script }
+                <h2> It's a tie for round {str(counter)}! </h2>
+                <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>                    
+                <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
+            <button type="button" class="collapsible"> Results Table </button>
+                <div class="content">
+                        <table>
+                          <tr>
+                            <th>Year</th>
+                            <th>Actual Value</th>
+                            <th>User Prediction</th>
+                            <th>ML Prediction</th>
+                          </tr>
+                          <tr>
+                            <td>{str(X_test[0]):.10}</td>
+                            <td>{y_test[0]}</td>
+                            <td>{user_guesses[0]}</td>
+                            <td>{float(int(ML_pred[0]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[1]):.10}</td>
+                            <td>{y_test[1]}</td>
+                            <td>{user_guesses[1]}</td>
+                            <td>{float(int(ML_pred[1]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[2]):.10}</td>
+                            <td>{y_test[2]}</td>
+                            <td>{user_guesses[2]}</td>
+                            <td>{float(int(ML_pred[2]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[3]):.10}</td>
+                            <td>{y_test[3]}</td>
+                            <td>{user_guesses[3]}</td>
+                           <td>{float(int(ML_pred[3]))}</td>
+                        
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[4]):.10}</td>
+                            <td>{y_test[4]}</td>
+                            <td>{user_guesses[4]}</td>
+                            <td>{float(int(ML_pred[4]))}</td>
+                         <tr>
+                        
+                        </table>
+                </div>
+                
+                
+                <form action="/guess" method = "POST">
+        <p><input type = "submit" value = "Play Again" /></p>
+        </form>
+                <form action="/" method = "POST">
+        <p><input type = "submit" value = "Return to Homepage" /></p>
+        </form>
+        
+        <script>
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+    
+    for (i = 0; i < coll.length; i++) {{
+      coll[i].addEventListener("click", function() {{
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        if (content.style.display === "block") {{
+          content.style.display = "none";
+        }} else {{
+          content.style.display = "block";
+        }}
+      }});
+    }}
+    </script>
+        
+            </body>
+        </html>'''
+            # ML Wins -----------------------------------------------------------------------------
             else:
                 return  f'''
             <html lang="en">
@@ -1349,10 +1483,6 @@ def display():
                         .collapsible:hover {{
                             background-color: {theme['button_hover']};
                         }}
-                        
-    
-    
-                        
                         .content {{
                         padding: 0 500px;
                         display: none;
@@ -1424,7 +1554,7 @@ def display():
                 
                 
                 <form action="/guess" method = "POST">
-        <p><input type = "submit" value = "Nice work, think you can do it again?" /></p>
+        <p><input type = "submit" value = "Play Again" /></p>
         </form>
                 <form action="/" method = "POST">
         <p><input type = "submit" value = "Return to Homepage" /></p>
@@ -1449,11 +1579,8 @@ def display():
         
             </body>
         </html>'''
+        # SALES DATA --------------------------------------------------------------------------------------
         if selected_data_set == 'Sales':
-            
-
-            
-            
             X_train, X_test, y_train, y_test,  Plot_Title = bridge(selected_data_set)
             
             train_days = []
@@ -1552,9 +1679,7 @@ def display():
             script, div = components(p)
             
             sv = 0
-            
-           
-            
+            # Player Wins --------------------------------------------------------------------------------------
             if user_mape < regr_mape:
                 
                 return  f'''
@@ -1601,9 +1726,6 @@ def display():
                             padding: 5px;
                             margin: 5px;
                         }}
-                        
-    
-                        
                         .collapsible {{
                         background-color: {theme['background']};
                         color: {theme['text_color']};
@@ -1620,9 +1742,6 @@ def display():
                         .collapsible:hover {{
                             background-color: {theme['button_hover']};
                         }}
-                        
-    
-                        
                         .content {{
                         padding: 0 500px;
                         display: none;
@@ -1727,7 +1846,8 @@ def display():
                 </body>
             </html>
             '''
-            else:
+            # Tie ------------------------------------------------------------------------------
+            elif user_mape == regr_mape:
                 return  f'''
             <html lang="en">
                 <head>
@@ -1791,9 +1911,171 @@ def display():
                         .collapsible:hover {{
                             background-color: {theme['button_hover']};
                         }}
+                        .content {{
+                        padding: 0 500px;
+                        display: none;
+                        overflow: hidden;
+                        text-align: center;
+                        background-color: {theme['background']};
+                      }}
+                        table, th, td {{
+                      border: 2px solid red;
+                      border-collapse: collapse;
+                      text-align: center;
+                    }}
+                    th, td {{
+                      padding: 10px;
+                    }}
+                    
+                    .center {{
+                      margin-left: auto;
+                      margin-right: auto;
+                    }}
                         
+                    </style>       
+                    
+                </head>
+                <body>
+                    <h1> Here are the results of the predictions: </h1>
+                    { div }
+                    { script }
+                <h2> It's a tie for round {str(counter)}! </h2>
+                <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>                    
+                <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
+           
+            <button type="button" class="collapsible"> Results Table </button>
+                <div class="content">
+                        <table>
+                          <tr>
+                            <th>Date</th>
+                            <th>Actual Value</th>
+                            <th>User Prediction</th>
+                            <th>ML Prediction</th>
+                          </tr>
+                          <tr>
+                            <td>{str(X_test[0]):.10}</td>
+                            <td>{float(int(y_test[0]))}</td>
+                            <td>{user_guesses[0]}</td>
+                            <td>{float(int(ML_pred[0]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[1]):.10}</td>
+                            <td>{float(int(y_test[1]))}</td>
+                            <td>{user_guesses[1]}</td>
+                            <td>{float(int(ML_pred[1]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[2]):.10}</td>
+                            <td>{float(int(y_test[2]))}</td>
+                            <td>{user_guesses[2]}</td>
+                            <td>{float(int(ML_pred[2]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[3]):.10}</td>
+                            <td>{float(int(y_test[3]))}</td>
+                            <td>{user_guesses[3]}</td>
+                           <td>{float(int(ML_pred[3]))}</td>
+                        
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[4]):.10}</td>
+                            <td>{float(int(y_test[4]))}</td>
+                            <td>{user_guesses[4]}</td>
+                            <td>{float(int(ML_pred[4]))}</td>
+                         <tr>
+                        
+                        </table>
+                </div>
+           
+            <form action="/guess" method = "POST">
+    <p><input type = "submit" value = "Play Again" /></p>
+        </form>
+            <form action="/" method = "POST">
+    <p><input type = "submit" value = "Return to Homepage" /></p>
+    </form>
     
+            <script>
+            var coll = document.getElementsByClassName("collapsible");
+            var i;
+            
+            for (i = 0; i < coll.length; i++) {{
+              coll[i].addEventListener("click", function() {{
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {{
+                  content.style.display = "none";
+                }} else {{
+                  content.style.display = "block";
+                }}
+              }});
+            }}
+            </script>
+                </body>
+            </html>
+            '''
+
+            # ML Wins ----------------------------------------------------------------------------------------
+            else:
+                return  f'''
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
+                    <title>Bokeh Charts 2</title>
+                    <style>
+                        .bk-Figure {{
+                                max-width: 60%;
+                                left: 20%;
+                            }}
+                        body {{
+                            background-color: {theme['background']};
+                            color: {theme['text_color']};
+                            font-family: 'Segoe UI', sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            text-align: center;
+                        }}
+                        h1, h2, h3, p {{
+                            color: {theme['text_color']};
+                        }}
+                        .btn-custom {{
+                            background-color: {theme['button_bg']};
+                            color: {theme['text_color']};
+                            border: none;
+                            padding: 10px 15px;
+                            border-radius: 5px;
+                            font-size: 16px;
+                            cursor: pointer;
+                            transition: background-color 0.3s ease;
+                        }}
+                        .btn-custom:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
+                        input {{
+                            background-color: {theme['chart_background']};
+                            color: {theme['text_color']};
+                            border: 1px solid {theme['neutral']};
+                            border-radius: 4px;
+                            padding: 5px;
+                            margin: 5px;
+                        }}
+                        .collapsible {{
+                        background-color: {theme['background']};
+                        color: {theme['text_color']};
+                        cursor: pointer;
+                        padding: 20px;
+                        width: 10%;
+                        border: 1px solid {theme['neutral']};
+                        border-radius: 4px;
+                        text-align: center;
+                        outline: none;
+                        font-size: 25px;
+                      }}
                         
+                        .collapsible:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
                         .content {{
                         padding: 0 500px;
                         display: none;
