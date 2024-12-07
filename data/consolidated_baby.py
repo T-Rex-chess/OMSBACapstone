@@ -32,46 +32,15 @@ app = Flask(__name__)
 counter = 0
 
 selected_data_set = 'random'
-'''
-</form>
-  
-  <h4> Ready to Play? </h4>
-  <p> If you are ready to play, click the button below! </p>
-  <form action="/guess" method = "POST">
-  <p><input type = "submit" value = "Start game" /></p>
-  </form>
-'''
-
-# Arrays -----------------------------------------------------------------------------------------------------------------
-# Predefined dataset of topics
-topics = [
-    "Sales",
-    "Electric Vehicles",
-    "Baby Names",
-    "Break Function",
-
-]
-
-#  "Electric Vehicles",
-#  "Baby Names",
-
-difficulty = [
-    "Easy",
-    "Medium",
-    "Hard",
-    "Break Function",
-]
-
-status = [
-    '1',
-    '2',
-]
 
 
 start = 0
 
 
 sv = 0
+
+
+bn = 'Anna'
 
 # Connect to Data --------------------------------------------------------------------------------------------------------
 file_url = 'https://raw.githubusercontent.com/T-Rex-chess/OMSBACapstone/main/data/sales_data_sample.csv'
@@ -91,7 +60,6 @@ babynames = babynames.T
 
 
 
-bn = 'Anna'
 
 
 
@@ -102,82 +70,6 @@ class BaseManager:
         self.data = data
 
 
-
-# GameManager Parent Class ------------------------------------------------------------------------------------------------
-class GameManager:
-    def __init__(self, topics, difficulty, game_counter, game_status):
-        self.topics = topics
-        self.difficulty = difficulty
-        self.game_counter = 0
-        self.game_status = 1
-
-    def display_topics(self):
-        print("Available topics:")
-        for i, topic in enumerate(self.topics, start=1):
-            print(f"{i}. {topic}")
-
-    def get_topic_selection(self):
-        while True:
-            try:
-                choice = int(input("Please select a topic by entering the corresponding number: "))
-                if choice == 4:
-                    break
-                if 1 <= choice <= len(self.topics):
-                    return self.topics[choice - 1]
-                else:
-                    print(f"Please enter a number between 1 and {len(self.topics)}.")
-            except ValueError:
-                print("Invalid input. Please enter a number.")
-
-    def display_difficulty(self):
-        print("Available Difficulties:")
-        for i, difficulty in enumerate(self.difficulty, start=1):
-            print(f"{i}. {difficulty}")
-
-    def get_difficulty_selection(self):
-        while True:
-            try:
-                choice = int(input("Please select a difficulty by entering the corresponding number: "))
-                if choice == 4:
-                    break
-                if 1 <= choice <= len(self.difficulty):
-                    return difficulty[choice - 1]
-                else:
-                    print(f"Please enter a number between 1 and {len(self.difficulty)}.")
-            except ValueError:
-                print("Invalid input. Please enter a number.")
-
-    # Asks the player if they want to continue playing
-    def update_game_status(self):
-        while True:
-            try:
-                choice = int(input("Would you like to play again? Enter 1 for Yes, 2 for No: "))
-                if choice == 1:
-                    return self.game_status
-                else:
-                    break
-            except ValueError:
-                print("Invalid input. Please enter a number.")
-
-
-    # Create a gameplay loop counter (ie a round) that increments after player has completed first round
-    def increment_game_counter(self):
-        while self.game_status == 1: 
-            print('Completed Round \n', self.game_counter)
-            self.game_counter += 1 
-            print('Would you like to play again?')
-    
-
-''' # defunct with html form in gui
-    def get_guess(self, YLab):
-        guess_list = []
-        for i in range(5):
-            g = askfloat("Input", f"Enter your guess for {YLab} {i}")
-            while g == None:
-                g = askfloat("Input", f"Enter your guess for {YLab} {i}")
-            guess_list.append(g)
-        return guess_list
-'''
 
 
 
@@ -564,22 +456,7 @@ class ModelManager:
 
 # How to Use the ModelManager Class ----------------------
 # Create an instance of the class
-'''
-model = ModelManager()
 
-# Fit the model
-model.fit(X_train, y_train)
-
-# Make predictions
-y_pred = model.predict(X_test)
-
-# Evaluate the model
-mse, r2 = model.evaluate(X_test, y_test)
-
-# Get coefficients and intercept
-coefficients = model.get_coefficients()
-intercept = model.get_intercept()
-'''
 
 
 # Ready for ScoreManager Class !!! ------------------------------------------------------------------------------
@@ -740,6 +617,9 @@ def start_page():
           font-size: 15px;
         }}
           
+          .collapsible:hover {{
+              background-color: {theme['button_hover']};
+          }}
 
           
           .content {{
@@ -921,7 +801,7 @@ def guess():
                             font-family: 'Segoe UI', sans-serif;
                             margin: 0;
                             padding: 20px;
-                            text-align: center;
+                            text-align: left;
                         }}
                         h1, h2, h3, p {{
                             color: {theme['text_color']};
@@ -954,7 +834,7 @@ def guess():
                             /* background: linear-gradient(60deg, {theme['background']}, {theme['button_hover']}); */
                             border-color: {theme['button_bg']};
                             margin: 10px;
-                            text-align: center;
+                            text-align: left;
                         }}
                                                            
                        .guessstyle {{
@@ -964,11 +844,11 @@ def guess():
         border-color: black;
         position: relative;
         padding: 10;
-        left: 42%;
+        
     }}
                             .bk-Figure {{
-        max-width: 60%;
-        left: 20%;
+        max-width: 80%;
+        
     }}
                     </style>       
                 
@@ -1068,7 +948,28 @@ def guess():
                     }}
                     
                     
-                </style>       
+                    section.inputSection {{
+                        border-style: solid;
+                        /* background: linear-gradient(60deg, {theme['background']}, {theme['button_hover']}); */
+                        border-color: {theme['button_bg']};
+                        margin: 10px;
+                        text-align: left;
+                    }}
+                                                       
+                   .guessstyle {{
+    border-style: solid;
+    background: linear-gradient(60deg,{theme['background']}, {theme['button_hover']});
+    max-width: fit-content;
+    border-color: black;
+    position: relative;
+    padding: 10;
+    
+}}
+                        .bk-Figure {{
+    max-width: 80%;
+    
+}}
+                </style>           
             
             </head>
     		<body>
@@ -1078,9 +979,10 @@ def guess():
     			{ script }
 
                 <h3> Submit a prediction for the $ amount of vehicle sales for each date below. This will show up in the light blue shaded region. </h3>
+                <section class="inputSection">
                 <p> After you submit your guesses, a machine learning model will also make some predictions. Can you beat the machine by predicting values more accurately? Good luck! </p>
                 
-                <form action="/display" method = "POST">
+                <form action="/display" method = "POST" class = "guessstyle">
         <p> Vehicle Sales on {str(X_test[0]):.10} <input type = "number" step = "any" name = "g1" value = 0 required /></p>
         <p> Vehicle Sales on {str(X_test[1]):.10} <input type = "number" step = "any" name = "g2" value = 0  required /></p>
         <p> Vehicle Sales on {str(X_test[2]):.10} <input type = "number" step = "any" name = "g3" value = 0 required /></p>
@@ -1088,7 +990,7 @@ def guess():
         <p> Vehicle Sales on {str(X_test[4]):.10} <input type = "number" step = "any" name = "g5" value = 0 required /></p>
         <p><input type = "submit" value = "Submit" /></p>
         </form>
-                
+                </section>
     		</body>
     	</html>
     	'''
@@ -1663,13 +1565,17 @@ def display():
                     <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
                     <title>Bokeh Charts 2</title>
                     <style>
+                        .bk-Figure {{
+                                max-width: 60%;
+                                left: 20%;
+                            }}
                         body {{
                             background-color: {theme['background']};
                             color: {theme['text_color']};
                             font-family: 'Segoe UI', sans-serif;
                             margin: 0;
                             padding: 20px;
-                            text-align: left;
+                            text-align: center;
                         }}
                         h1, h2, h3, p {{
                             color: {theme['text_color']};
@@ -1695,6 +1601,49 @@ def display():
                             padding: 5px;
                             margin: 5px;
                         }}
+                        
+    
+                        
+                        .collapsible {{
+                        background-color: {theme['background']};
+                        color: {theme['text_color']};
+                        cursor: pointer;
+                        padding: 20px;
+                        width: 10%;
+                        border: 1px solid {theme['neutral']};
+                        border-radius: 4px;
+                        text-align: center;
+                        outline: none;
+                        font-size: 25px;
+                      }}
+                        
+                        .collapsible:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
+                        
+    
+                        
+                        .content {{
+                        padding: 0 500px;
+                        display: none;
+                        overflow: hidden;
+                        text-align: center;
+                        background-color: {theme['background']};
+                      }}
+                        table, th, td {{
+                      border: 2px solid red;
+                      border-collapse: collapse;
+                      text-align: center;
+                    }}
+                    th, td {{
+                      padding: 10px;
+                    }}
+                    
+                    .center {{
+                      margin-left: auto;
+                      margin-right: auto;
+                    }}
+                        
                     </style>     
                     
                 </head>
@@ -1705,12 +1654,76 @@ def display():
                     <h3> You Won this Round! Good job predicting! </h3>
                     <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>
                     <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
+                    
+                    <button type="button" class="collapsible"> Results Table </button>
+                        <div class="content">
+                                <table>
+                                  <tr>
+                                    <th>Date</th>
+                                    <th>Actual Value</th>
+                                    <th>User Prediction</th>
+                                    <th>ML Prediction</th>
+                                  </tr>
+                                  <tr>
+                                    <td>{str(X_test[0]):.10}</td>
+                                    <td>{float(int(y_test[0]))}</td>
+                                    <td>{user_guesses[0]}</td>
+                                    <td>{float(int(ML_pred[0]))}</td>
+                                 <tr>
+                                  <tr>
+                                    <td>{str(X_test[1]):.10}</td>
+                                    <td>{float(int(y_test[1]))}</td>
+                                    <td>{user_guesses[1]}</td>
+                                    <td>{float(int(ML_pred[1]))}</td>
+                                 <tr>
+                                  <tr>
+                                    <td>{str(X_test[2]):.10}</td>
+                                    <td>{float(int(y_test[2]))}</td>
+                                    <td>{user_guesses[2]}</td>
+                                    <td>{float(int(ML_pred[2]))}</td>
+                                 <tr>
+                                  <tr>
+                                    <td>{str(X_test[3]):.10}</td>
+                                    <td>{float(int(y_test[3]))}</td>
+                                    <td>{user_guesses[3]}</td>
+                                   <td>{float(int(ML_pred[3]))}</td>
+                                
+                                 <tr>
+                                  <tr>
+                                    <td>{str(X_test[4]):.10}</td>
+                                    <td>{float(int(y_test[4]))}</td>
+                                    <td>{user_guesses[4]}</td>
+                                    <td>{float(int(ML_pred[4]))}</td>
+                                 <tr>
+                                
+                                </table>
+                        </div>
+                    
+                    
                     <form action="/guess" method = "POST">
             <p><input type = "submit" value = "Play Again" /></p>
             </form>
                     <form action="/" method = "POST">
             <p><input type = "submit" value = "Return to Homepage" /></p>
             </form>
+            
+            <script>
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+        
+        for (i = 0; i < coll.length; i++) {{
+          coll[i].addEventListener("click", function() {{
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.display === "block") {{
+              content.style.display = "none";
+            }} else {{
+              content.style.display = "block";
+            }}
+          }});
+        }}
+        </script>
+            
                 </body>
             </html>
             '''
@@ -1723,13 +1736,17 @@ def display():
                     <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.1.min.js"></script>
                     <title>Bokeh Charts 2</title>
                     <style>
+                        .bk-Figure {{
+                                max-width: 60%;
+                                left: 20%;
+                            }}
                         body {{
                             background-color: {theme['background']};
                             color: {theme['text_color']};
                             font-family: 'Segoe UI', sans-serif;
                             margin: 0;
                             padding: 20px;
-                            text-align: left;
+                            text-align: center;
                         }}
                         h1, h2, h3, p {{
                             color: {theme['text_color']};
@@ -1755,7 +1772,50 @@ def display():
                             padding: 5px;
                             margin: 5px;
                         }}
-                    </style>     
+                        
+    
+                        
+                        .collapsible {{
+                        background-color: {theme['background']};
+                        color: {theme['text_color']};
+                        cursor: pointer;
+                        padding: 20px;
+                        width: 10%;
+                        border: 1px solid {theme['neutral']};
+                        border-radius: 4px;
+                        text-align: center;
+                        outline: none;
+                        font-size: 25px;
+                      }}
+                        
+                        .collapsible:hover {{
+                            background-color: {theme['button_hover']};
+                        }}
+                        
+    
+                        
+                        .content {{
+                        padding: 0 500px;
+                        display: none;
+                        overflow: hidden;
+                        text-align: center;
+                        background-color: {theme['background']};
+                      }}
+                        table, th, td {{
+                      border: 2px solid red;
+                      border-collapse: collapse;
+                      text-align: center;
+                    }}
+                    th, td {{
+                      padding: 10px;
+                    }}
+                    
+                    .center {{
+                      margin-left: auto;
+                      margin-right: auto;
+                    }}
+                        
+                    </style>       
                     
                 </head>
                 <body>
@@ -1765,12 +1825,74 @@ def display():
                 <h2> ML Wins this Round! Better luck next time. </h2>
                 <h3> Your MAPE was: {user_mape}, ML's MAPE Was {regr_mape} <h3>                    
                 <p> Game is scored using Mean Absolute Percentage Error (MAPE). Higher MAPE = Less Accurate, Lower MAPE = More Accurate </p>
+           
+            <button type="button" class="collapsible"> Results Table </button>
+                <div class="content">
+                        <table>
+                          <tr>
+                            <th>Date</th>
+                            <th>Actual Value</th>
+                            <th>User Prediction</th>
+                            <th>ML Prediction</th>
+                          </tr>
+                          <tr>
+                            <td>{str(X_test[0]):.10}</td>
+                            <td>{float(int(y_test[0]))}</td>
+                            <td>{user_guesses[0]}</td>
+                            <td>{float(int(ML_pred[0]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[1]):.10}</td>
+                            <td>{float(int(y_test[1]))}</td>
+                            <td>{user_guesses[1]}</td>
+                            <td>{float(int(ML_pred[1]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[2]):.10}</td>
+                            <td>{float(int(y_test[2]))}</td>
+                            <td>{user_guesses[2]}</td>
+                            <td>{float(int(ML_pred[2]))}</td>
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[3]):.10}</td>
+                            <td>{float(int(y_test[3]))}</td>
+                            <td>{user_guesses[3]}</td>
+                           <td>{float(int(ML_pred[3]))}</td>
+                        
+                         <tr>
+                          <tr>
+                            <td>{str(X_test[4]):.10}</td>
+                            <td>{float(int(y_test[4]))}</td>
+                            <td>{user_guesses[4]}</td>
+                            <td>{float(int(ML_pred[4]))}</td>
+                         <tr>
+                        
+                        </table>
+                </div>
+           
             <form action="/guess" method = "POST">
     <p><input type = "submit" value = "Play Again" /></p>
         </form>
             <form action="/" method = "POST">
     <p><input type = "submit" value = "Return to Homepage" /></p>
     </form>
+    
+            <script>
+            var coll = document.getElementsByClassName("collapsible");
+            var i;
+            
+            for (i = 0; i < coll.length; i++) {{
+              coll[i].addEventListener("click", function() {{
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {{
+                  content.style.display = "none";
+                }} else {{
+                  content.style.display = "block";
+                }}
+              }});
+            }}
+            </script>
                 </body>
             </html>
             '''
